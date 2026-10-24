@@ -38,6 +38,9 @@ import numpy as np
 
 from ..moe_engine.cautreo_moe_pager import CautreoMoEDynamicPager, NativeTriCoreABIBridge
 from ..moe_engine.moe_upcycler_trainer import encode_utterance_sketch_64_np
+from .generative_cortex import VivyNativeEmbeddedCortex
+from .persona_firewall import SilentPersonaFirewall
+from .room_self_architect import VivyRoomSelfArchitectEngine
 from .trader_system_prompt import TraderSystemPromptManager
 
 
@@ -89,6 +92,8 @@ class VivyQwenSemanticCompiler:
         self._recent_slot_selections: list[tuple[int, int]] = []
         self._turn_seq: int = 0
         self.atlas_6x64 = self._unpack_compositional_atlas_from_vcore()
+        self.generative_cortex = VivyNativeEmbeddedCortex()
+        self.persona_firewall = SilentPersonaFirewall()
 
     def _unpack_compositional_atlas_from_vcore(self) -> dict[str, list[dict[str, Any]]]:
         """Unpacks the 6x64 Compositional Text Atlas directly from the decrypted `.vcore` master tensor."""
@@ -198,12 +203,37 @@ class VivyQwenSemanticCompiler:
         requires_tool = False
         tool_name = "none"
         tool_args: dict[str, Any] = {}
+        room_req = VivyRoomSelfArchitectEngine.detect_user_permission_from_utterance(normalized)
 
         if contradiction_detected:
             intent_domain = "CONTRADICTION_CHALLENGE"
             register_mode = "CONTRADICTION_CHALLENGE"
             focus_clause = f"nhận diện ngay điểm mâu thuẫn trong giả định vừa nêu ({contradiction_detail})"
             target_8d = [0.98, 0.82, 0.80, 0.96, 0.84, 0.90, 0.90, 0.75]
+        elif room_req["is_room_request"]:
+            intent_domain = "AGENT_TOOL_ACTION"
+            register_mode = "ROOM_SELF_ARCHITECT"
+            requires_tool = True
+            tool_name = "room_self_architect"
+            tool_args = {
+                "action_type": room_req["action_type"],
+                "user_permitted": room_req["user_permitted"],
+                "theme_key": room_req["theme_key"],
+                "raw_utterance": normalized,
+            }
+            focus_clause = "tự kiểm soát, chẩn đoán và điều chỉnh trực tiếp căn phòng Vivyroom theo yêu cầu của anh Vĩ"
+            target_8d = [0.99, 0.92, 0.90, 0.98, 0.90, 0.96, 0.92, 0.90]
+        elif any(
+            k in lower
+            for k in ("plugin", "skill.md", "gắn nóng", "hot-mount", "tích hợp skill", "nạp skill", "cài plugin", "cài skill")
+        ):
+            intent_domain = "AGENT_TOOL_ACTION"
+            register_mode = "OPEN_SOURCE_PLUGIN_COMPILER"
+            requires_tool = True
+            tool_name = "open_source_plugin_compiler"
+            tool_args = {"spec": normalized}
+            focus_clause = "biên dịch, kiểm tra an toàn AST và gắn nóng gói kỹ năng/plugin mở vào căn phòng"
+            target_8d = [0.98, 0.90, 0.88, 0.97, 0.88, 0.95, 0.90, 0.88]
         elif any(k in lower for k in ("youtube", "youtu.be", "xem video", "học từ youtube", "video bài giảng", "youtube learning")):
             intent_domain = "AGENT_TOOL_ACTION"
             register_mode = "QUANT_YOUTUBE_LEARNING"
@@ -428,13 +458,17 @@ class VivyQwenSemanticCompiler:
         if len(self._recent_slot_selections) > 36:
             self._recent_slot_selections = self._recent_slot_selections[-36:]
 
-        # 3. Assemble Natural Language Response (Vietnamese or English)
-        if ast_in.language == "en":
-            response_text = self._render_english_response(ast_in, eq_report, moe_report, tool_output)
-        else:
-            response_text = self._render_vietnamese_compositional_response(
-                ast_in, chosen_slot_units, eq_report, moe_report, tool_output
-            )
+        # 3. Assemble Natural Human-Grade Conversational Response via Native Embedded Cortex + SilentPersonaFirewall
+        response_text = self.generative_cortex.compose_natural_response(
+            user_text=ast_in.normalized_text,
+            intent_domain=ast_in.intent_domain,
+            register_mode=ast_in.register_mode,
+            contradiction_detected=ast_in.contradiction_detected,
+            contradiction_detail=ast_in.contradiction_detail,
+            eq_report=eq_report,
+            tool_output=tool_output,
+            language=ast_in.language,
+        )
 
         voice_b64 = ""
         if synthesize_voice:
@@ -443,6 +477,7 @@ class VivyQwenSemanticCompiler:
         compile_out_ms = round((time.perf_counter() - t0) * 1000.0, 3)
         return {
             "response_text": response_text,
+            "persona_firewall_audit": self.persona_firewall.audit_zero_spec_leakage(response_text),
             "chosen_slot_units_6x64": chosen_slot_units,
             "nps_coupled_states": nps_res["chosen_states"],
             "nps_coupled_score": nps_res["total_coupled_score"],

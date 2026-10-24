@@ -9,3 +9,5 @@ build/
 .env
 .venv/
 .vivyroom_installed
+.vivyroom_data/
+.vivyroom_snapshots/

@@ -7,10 +7,12 @@ from pathlib import Path
 from typing import Any
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
+PACKAGE_DIR = PACKAGE_ROOT
 REPO_ROOT = PACKAGE_ROOT.parent
 NATIVE_BIN_DIR = PACKAGE_ROOT / "native" / "bin"
 MODELS_DIR = REPO_ROOT / "models"
 UI_DIR = REPO_ROOT / "ui"
+DATA_DIR = REPO_ROOT / ".vivyroom_data"
 
 
 @dataclass

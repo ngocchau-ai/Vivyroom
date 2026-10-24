@@ -108,6 +108,27 @@ Vivyroom/
 
 ---
 
+## 4.5. `Vivyroom v2.0` Full-Scale Sovereign Edition (`DSH × Harness²` + `Computer-Use` + `Browser-Use` + `5-Tier Memory Spine`)
+
+`Vivyroom v2.0` upgrades the control room into an **Antigravity-class General-Purpose Agent** with **Native Embedded Vivy (`0` external API keys, `0` intermediate LLM relays)**:
+
+1. **Natural Human-Grade Conversation (`SilentPersonaFirewall` — `0%` Spec/System-Prompt Leakage):**
+   - `vivyroom/agent/persona_firewall.py` and `vivyroom/agent/generative_cortex.py` (`VivyNativeEmbeddedCortex`) ensure Vivy converses warmly, naturally, and intelligently like a human partner without ever reciting her own `SYSTEM_PROMPT.md`, `.vcore` encryption headers, RAM numbers, or Expert IDs inside chat messages. Technical telemetry is cleanly isolated inside the collapsible X-Ray Drawer (`Alt+X`).
+2. **Autopoietic Room Self-Control, Self-Repair & Self-Modification (`VivyRoomSelfArchitectEngine`):**
+   - When permitted or requested by the user (`user_permitted = True`), Vivy can inspect, diagnose, repair, and modify her own room (`ui/index.html`, `ui/vivyroom_style.css`, Python modules, and mounted skills) with automatic `.vivyroom_snapshots/` backups, AST syntax verification, live browser hot-reload, and 1-step rollback.
+3. **Native Rust + Python `DSH × Harness²` Self-Evolution (`crates/vivyroom-rs` / `vivyroom_harness.dll`):**
+   - Rebuilds the core primitives of `DSH` (`deepseek-harness`: `Engram O(1)`, `MTP` speculative decoding, `Propose -> Probe -> Compose`, `Gate 4` permission & destructive-surface guard `vh_dsh_evaluate_gate4`, and `4-Layer Overlay Sync L0->L1->L2->L3` with `TAKE / KEEP / MERGE` defaulting to `KEEP` for user skills).
+   - Integrates `Harness²` (`8 Organs H1..H8` attached strictly to `Vivyroom Runtime` with `attached_to_cautreo_engine = False`), `HomeostaticCognitiveFrictionDrive` (`ABSORBED_BY_RELIEF_DRIVE` vs. `SHED_BY_ATROPHY`), and `SkillSelfPlayAndDistillationFoundry` (`Proposer -> Solver -> Controller`).
+4. **Universal Open-Source Plugin & Skill Compiler (`vivyroom/plugin_compiler/bridge.py`):**
+   - Compiles and hot-mounts `SKILL.md` (Anthropic/gstack format), `plugin.json` (MCP format), and Python tool modules after AST static safety validation (`PluginStaticValidator`).
+5. **Four Community-Validated Open-Source Capability Pillars (Rebuilt Natively):**
+   - **`VivyNativeComputerUseEngine`:** Native rebuild of `trycua/cua` (~30.8k ⭐) + `compute-use` Bounded Candidate Loop (`cand_01..cand_N` + `capture_id` Stale Capture Guard) + `Open Interpreter` (~68.7k ⭐) `Code-as-Action`.
+   - **`VivyNativeBrowserUseEngine` (`0%` LangChain):** Native rebuild of `browser-use/browser-use` (~118.6k ⭐) Indexed DOM Tree (`[1]..[N]`) + `Crawl4AI` (~86k ⭐) HTML-to-Clean-Markdown distiller + optional direct WebSocket CDP support (`Lightpanda` ~30.1k ⭐ Zig headless browser or Chromium/Edge).
+   - **`VivyMultiProviderKeylessWebEngine`:** Multi-tier keyless web search combining `SearXNG` (~37k ⭐), `DuckDuckGo Lite/HTML` (`ddgs` ~4.5k ⭐ with `uddg` redirect unwrapping and `y.js` ad filtering), `Trafilatura/Crawl4AI` clean page extraction, and `RoboForex`/`ForexFactory` priority routing.
+   - **`VivyFiveTierMemorySpine` (`M1..M5`):** Combines `M1` (Rust `Engram O(1)`), `M2` (`Cautreo WorkingStateWindow-4` & `VM-11`), `M3` (`BiTemporalSQLiteFTS5Vault` using Python's built-in `sqlite3` `FTS5` BM25 recall + `Mem0` ~67.6k ⭐ Auto-Fact Extraction + `Graphiti` ~28k ⭐ Bi-Temporal Superseding `[ISOLATED / SUPERSEDED]` with zero deletion), `M4` (`ZeroBloatEpisodeCompactor` `99.997%` archetype compression), and `M5` (`TwoBrainSovereignSync`).
+
+---
+
 ## 5. 1-Command Git Clone & 1-Time Install (Windows & Linux / OrangePi)
 
 <!-- [ISOLATED / REPLACED — Pre-OranPi Manual Launch Section]
@@ -153,3 +174,4 @@ pytest -q
 | Antigravity IDE | 2026-10-24 11:48 ICT | Initial release of `Vivyroom` v1.0.0: Portable `<2 GB RAM` unified `Vivy + Cautreo` cockpit, proprietary 3-Cores-in-1 `.vcore` encryption, 8-Expert `Vivy-Finance-3B-MoE`, and Qwen-Decomposed Bidirectional Semantic Compiler. |
 | Antigravity IDE | 2026-10-24 12:12 ICT | Added 4 mandatory ultra-lightweight skills (`websearch_zero_api` prioritizing RoboForex & ForexFactory, `github_huggingface_connector`, `youtube_learning_ingestor`, `market_news_synthesizer`) and Zero-Config `SYSTEM_PROMPT.md` with Anti-Human-Bias Shield (`6/6 pytest passed`). |
 | Antigravity IDE | 2026-10-24 13:18 ICT | Upgraded to Button-Free (`0` buttons) 100% Autonomous Single-Chat UI powered by open-source `OranPi × PocketFlow` (`vivyroom/agent/oranpi_pocket_agent.py`), autonomous multi-skill chaining, auto-saving `SYSTEM_PROMPT.md`, and 1-command Git clone & 1-time install scripts (`install_and_run.bat`, `install_and_run.ps1`, `install_and_run.sh`) for Windows and Linux / OrangePi. |
+| Antigravity IDE | 2026-10-24 19:04 ICT | Upgraded to `Vivyroom v2.0` Full-Scale Sovereign Edition: native Rust `crates/vivyroom-rs` (`vivyroom_harness.dll`), `SilentPersonaFirewall` (`0%` spec/prompt leakage), `VivyNativeEmbeddedCortex`, `VivyRoomSelfArchitectEngine` (permission-gated self-control & 1-step rollback), `DSH × Harness²` (`Gate 4` + 8 Organs + Skill Self-Play Distillation), `UniversalPluginCompilerBridge`, `VivyNativeComputerUseEngine`, `VivyNativeBrowserUseEngine` (`0%` LangChain), `VivyMultiProviderKeylessWebEngine`, and `VivyFiveTierMemorySpine` (`17/17 pytest` + `3/3 cargo test` passed). |

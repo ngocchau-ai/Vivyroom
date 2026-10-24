@@ -159,6 +159,11 @@ def build_autonomous_skill_plan(normalized_text: str, primary_tool: str, primary
         _add("update_system_prompt_inline", {"reset": True})
         return plan
 
+    # 1.5. Prioritize Room Self-Architect or Open-Source Plugin Compiler if selected as primary tool
+    if primary_tool in ("room_self_architect", "open_source_plugin_compiler"):
+        _add(primary_tool, primary_args)
+        return plan
+
     # 2. Autonomous Multi-Skill Discovery from natural language intent
     wants_news = any(
         k in lower

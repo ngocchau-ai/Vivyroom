@@ -1,0 +1,24 @@
+{
+  "capability_id": "distilled_2fdb931d43",
+  "architecture": "HARNESS2_SELF_PLAY_DISTILLED_CAPABILITY_V2",
+  "domain_cluster": "sovereign_quant_finance",
+  "created_at": "2026-10-24T12:03:35.848285+00:00",
+  "self_play_loop": {
+    "proposer_challenge": "Synthesize zero-bloat deterministic workflow for domain 'sovereign_quant_finance'.",
+    "solver_trace": [
+      "Step 1 (Propose): Parse intent & constraints from 'Xem video YouTube học thuật toán bottrade Ornstein-Uhlenbeck và Kalman 1D'",
+      "Step 2 (Probe): Validate via DSH Gate 4 & Cautreo VM-11 (Observe market microstructure (Eyes) -> Compute Kalman z-score & Hurst regime -> Synthesiz)",
+      "Step 3 (Compose): Emit verified execution plan & natural human dialogue"
+    ],
+    "controller_verification_score": 0.955
+  },
+  "homeostatic_drive": {
+    "candidate_id": "distilled_2fdb931d43",
+    "friction_before": 0.45,
+    "friction_after": 0.15,
+    "relief_gain": 0.3,
+    "idle_turns": 0,
+    "verdict": "ABSORBED_BY_RELIEF_DRIVE",
+    "absorbed": true
+  }
+}

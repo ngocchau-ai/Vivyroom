@@ -1,0 +1,17 @@
+[package]
+name = "vivyroom-rs"
+version = "2.0.0"
+edition = "2021"
+description = "Vivyroom v2.0 Sovereign Rust Core: DeepSeek Harness (Propose-Probe-Compose + MTP Speculative Verifier + Engram O(1) Memory) & Autopoietic Room Mutation Ledger"
+license = "Proprietary"
+
+[lib]
+name = "vivyroom_harness"
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "unwind"
+strip = true

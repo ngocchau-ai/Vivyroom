@@ -227,6 +227,56 @@ class VivyroomRequestHandler(BaseHTTPRequestHandler):
                 )
                 return
 
+            if route == "/api/room/mutate":
+                action = str(body.get("action", "inspect_only"))
+                user_permitted = bool(body.get("user_permitted", False))
+                with self.controller_lock:
+                    if action == "mutate_theme":
+                        room_out = self.controller.room_architect.mutate_room_theme(
+                            str(body.get("theme_key", "violet")),
+                            user_permitted=user_permitted,
+                        )
+                    elif action == "mutate_title":
+                        room_out = self.controller.room_architect.mutate_room_title(
+                            str(body.get("new_title", "VIVYROOM SOVEREIGN")),
+                            user_permitted=user_permitted,
+                        )
+                    elif action == "surgical_edit":
+                        room_out = self.controller.room_architect.surgical_edit_room_file(
+                            rel_path=str(body.get("rel_path", "")),
+                            target_str=str(body.get("target", "")),
+                            replacement_str=str(body.get("replacement", "")),
+                            reason=str(body.get("reason", "user_authorized_edit")),
+                            user_permitted=user_permitted,
+                        )
+                    elif action == "rollback":
+                        room_out = self.controller.room_architect.rollback_last_room_mutation(
+                            user_permitted=user_permitted,
+                        )
+                    elif action == "diagnose_and_repair":
+                        room_out = self.controller.room_architect.diagnose_and_repair_room(
+                            user_permitted=user_permitted,
+                        )
+                    else:
+                        room_out = self.controller.room_architect.inspect_room_architecture()
+                    status = self.controller.get_system_status()
+                self._send_json(
+                    HTTPStatus.OK,
+                    {"ok": True, "room_mutation": room_out, "status": status},
+                )
+                return
+
+            if route == "/api/plugins/mount":
+                spec = str(body.get("spec", "")).strip()
+                with self.controller_lock:
+                    mount_out = self.controller.plugin_compiler.hot_mount_from_spec(spec)
+                    status = self.controller.get_system_status()
+                self._send_json(
+                    HTTPStatus.OK,
+                    {"ok": True, "plugin_mount": mount_out, "status": status},
+                )
+                return
+
             self._send_json(HTTPStatus.NOT_FOUND, {"ok": False, "error": f"Unknown endpoint: {route}"})
         except Exception as exc:
             self._send_json(

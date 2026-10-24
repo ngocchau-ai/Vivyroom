@@ -29,10 +29,20 @@ from ..moe_engine.moe_upcycler_trainer import (
     encode_utterance_sketch_64_np,
     train_and_package_vivy_tri_core_moe,
 )
+from ..plugin_compiler import UniversalPluginCompilerBridge
+from .computer_browser_web_suite import (
+    VivyMultiProviderKeylessWebEngine,
+    VivyNativeBrowserUseEngine,
+    VivyNativeComputerUseEngine,
+)
+from .deepseek_harness_bridge import RustDeepSeekHarnessBridge
+from .harness2_room_engine import VivyroomHarness2Controller
 from .llm_semantic_compiler import CompiledIntentAST, VivyQwenSemanticCompiler
 from .memory_engine import CautreoMemoryAndVM11Engine
+from .multi_tier_memory import VivyFiveTierMemorySpine
 from .oranpi_pocket_agent import build_autonomous_skill_plan, detect_oranpi_and_host_hardware
 from .pocket_graph import PocketStateContext, ZeroRelayPocketGraph
+from .room_self_architect import VivyRoomSelfArchitectEngine
 from .skills_registry import OfflineSkillsRegistry
 from .trader_system_prompt import TraderSystemPromptManager
 
@@ -59,6 +69,14 @@ class VivyroomAutonomousController:
             )
 
         self.abi = NativeTriCoreABIBridge()
+        self.deepseek_harness = RustDeepSeekHarnessBridge()
+        self.harness2 = VivyroomHarness2Controller(rust_bridge=self.deepseek_harness)
+        self.computer_use = VivyNativeComputerUseEngine(rust_bridge=self.deepseek_harness)
+        self.browser_use = VivyNativeBrowserUseEngine()
+        self.keyless_web = VivyMultiProviderKeylessWebEngine(browser_engine=self.browser_use)
+        self.five_tier_memory = VivyFiveTierMemorySpine()
+        self.room_architect = VivyRoomSelfArchitectEngine(self.deepseek_harness)
+        self.plugin_compiler = UniversalPluginCompilerBridge()
         self.moe_pager = CautreoMoEDynamicPager(
             master_key=self.auth_gate.master_key_bytes,
             models_dir=self.models_dir,
@@ -67,6 +85,11 @@ class VivyroomAutonomousController:
         self.finance_desk = VivyFinanceMoEDesk(self.abi, self.moe_pager)
         self.compiler = VivyQwenSemanticCompiler(self.abi, self.moe_pager)
         self.skills = OfflineSkillsRegistry(self.finance_desk, self.moe_pager)
+        self.skills.enabled_skills["room_self_architect"] = True
+        self.skills.enabled_skills["open_source_plugin_compiler"] = True
+        self.skills.enabled_skills["computer_use_bounded_cua"] = True
+        self.skills.enabled_skills["browser_use_indexed_dom"] = True
+        self.skills.enabled_skills["five_tier_sovereign_memory"] = True
         self.memory = CautreoMemoryAndVM11Engine(max_turns=100)
         self.system_prompt_mgr = TraderSystemPromptManager()
         self._turn_counter: int = 0
@@ -101,6 +124,11 @@ class VivyroomAutonomousController:
                 max_steps=8,
             )
             ctx.state["eq_report"] = eq_report
+            harness_receipt = self.deepseek_harness.run_harness(
+                ast_in.normalized_text,
+                falsified_branches=len(self.memory.falsified_branches),
+            )
+            ctx.state["deepseek_harness"] = harness_receipt
             skill_plan = (
                 []
                 if ast_in.contradiction_detected
@@ -130,6 +158,29 @@ class VivyroomAutonomousController:
                     else:
                         prof = self.system_prompt_mgr.update_system_prompt(str(t_args.get("prompt_text", "")))
                     out = {"executed": True, "skill": "update_system_prompt_inline", **prof.to_dict()}
+                elif t_name == "room_self_architect":
+                    act_type = str(t_args.get("action_type", "inspect_only"))
+                    permitted = bool(t_args.get("user_permitted", False))
+                    if act_type == "mutate_theme":
+                        out = self.room_architect.mutate_room_theme(
+                            str(t_args.get("theme_key") or "violet"),
+                            user_permitted=permitted,
+                        )
+                    elif act_type == "mutate_title":
+                        raw_u = str(t_args.get("raw_utterance", ""))
+                        import re as _re
+
+                        m_t = _re.search(r"['\"«]([^'\"»]{2,60})['\"»]", raw_u)
+                        new_t = m_t.group(1) if m_t else "VIVYROOM SOVEREIGN"
+                        out = self.room_architect.mutate_room_title(new_t, user_permitted=permitted)
+                    elif act_type == "rollback_room":
+                        out = self.room_architect.rollback_last_room_mutation(user_permitted=permitted)
+                    elif act_type == "diagnose_and_repair":
+                        out = self.room_architect.diagnose_and_repair_room(user_permitted=permitted)
+                    else:
+                        out = self.room_architect.inspect_room_architecture()
+                elif t_name == "open_source_plugin_compiler":
+                    out = self.plugin_compiler.hot_mount_from_spec(str(t_args.get("spec", "")))
                 else:
                     out = self.skills.execute_skill(t_name, t_args)
 
@@ -251,6 +302,25 @@ class VivyroomAutonomousController:
             ram_mb=ram_mb,
             vm11_weight=float(eq_report.get("vm11_weight", 1.0)),
         )
+        ds_harness_out = ctx.state.get("deepseek_harness") or self.deepseek_harness.run_harness(user_message)
+        dsh_x_harness2_out = self.harness2.execute_dsh_contract_and_evolve(
+            user_message=ast_in.normalized_text,
+            domain_cluster=str(ds_harness_out.get("domain_cluster", ast_in.intent_domain)),
+            reasoning_scaffold=str(ds_harness_out.get("reasoning_scaffold", "")),
+            action_class=ast_in.tool_name if ast_in.requires_tool else "observe_and_reason",
+            target_path="vivyroom://conversation",
+            user_permitted=bool(ast_in.tool_args.get("user_permitted", False)),
+        )
+        five_tier_mem_out = self.five_tier_memory.process_turn(
+            user_message=ast_in.normalized_text,
+            assistant_reply=outbound["response_text"],
+            m1_engram_telemetry=ds_harness_out,
+            m2_cautreo_telemetry={
+                "working_window_slots": min(4, self._turn_counter),
+                "vm11_dampening": float(eq_report.get("vm11_weight", 1.0)),
+                "active_experts": moe_report["active_expert_codes"],
+            },
+        )
 
         return {
             "turn_id": self._turn_counter,
@@ -270,14 +340,19 @@ class VivyroomAutonomousController:
                 "nps_coupled_score": outbound["nps_coupled_score"],
             },
             "decision_equilibrium_telemetry": eq_report,
+            "deepseek_harness_telemetry": ds_harness_out,
+            "dsh_x_harness2_telemetry": dsh_x_harness2_out,
+            "five_tier_memory_telemetry": five_tier_mem_out,
             "moe_routing_telemetry": moe_report,
             "tool_output": tool_out,
+            "ui_reload_required": bool(tool_out and tool_out.get("ui_reload_required", False)),
             "pocket_graph_trace": ctx.trace_steps,
             "hardware_telemetry": {
                 "process_ram_mb": ram_mb,
                 "device_ram_limit_mb": self.config.device_ram_limit_mb,
                 "under_2gb_budget": ram_mb <= self.config.device_ram_limit_mb,
                 "zero_external_relay": True,
+                "native_embedded_vivy": True,
                 "proprietary_vcore_3in1_active": True,
             },
         }
@@ -286,10 +361,11 @@ class VivyroomAutonomousController:
         ram_mb = get_process_working_set_mb()
         vcore_audit = self.moe_pager.inspect_all_vcore_containers()
         return {
-            "organism": "Vivy + Cautreo Unified Tri-Core (3-Cores-in-1 .vcore)",
+            "organism": "Vivy + Cautreo Sovereign Room v2.0 (Native Embedded Vivy + Rust DeepSeek Harness)",
             "is_single_unified_organism": True,
             "entity_count": 1,
             "zero_external_relay": True,
+            "native_embedded_vivy": True,
             "auth_status": self.auth_gate.get_status(),
             "ram_telemetry": {
                 "process_ram_mb": ram_mb,
@@ -303,6 +379,22 @@ class VivyroomAutonomousController:
                 "page_out_events": self.moe_pager.page_out_events,
             },
             "vcore_audit": vcore_audit,
+            "deepseek_harness_status": {
+                "native_rust_loaded": self.deepseek_harness.native_loaded,
+                "dll_path": str(self.deepseek_harness.dll_path.name),
+            },
+            "dsh_x_harness2_status": {
+                "attached_to_vivyroom_runtime": self.harness2.attached_to_vivyroom_runtime,
+                "attached_to_cautreo_engine": self.harness2.attached_to_cautreo_engine,
+                "organs_count": len(self.harness2.organs_state),
+                "total_dsh_receipts": self.harness2.total_receipts,
+            },
+            "five_tier_memory_status": {
+                "fts5_enabled": self.five_tier_memory.m3_vault.fts5_enabled,
+                "m5_two_brain": self.five_tier_memory.m5_sync.status(),
+            },
+            "room_self_architect_status": self.room_architect.inspect_room_architecture(),
+            "mounted_plugins": self.plugin_compiler.get_summary(),
             "enabled_skills": self.skills.enabled_skills,
             "memory_digest": self.memory.get_digest(),
             "trader_system_prompt": self.system_prompt_mgr.get_active_profile().to_dict(),

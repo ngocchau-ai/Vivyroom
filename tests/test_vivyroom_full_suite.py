@@ -162,7 +162,7 @@ def test_http_server_endpoints_and_single_ui_delivery(controller: VivyroomAutono
             html = resp.read().decode("utf-8")
             assert resp.status == 200
             assert "VIVYROOM" in html
-            assert "VCORE3 (3-IN-1 LOCKED)" in html
+            assert "Native Embedded Vivy" in html
 
         # 2. GET /api/status
         with urllib.request.urlopen(f"{base_url}/api/status") as resp:
@@ -280,11 +280,12 @@ def test_mandatory_4_trader_skills_and_zero_config_system_prompt(controller: Viv
     assert -1.0 <= r_news["tool_output"]["macro_news_bias"] <= 1.0
     assert len(r_news["tool_output"]["events"]) >= 2
 
-    # 6. Anti-Human-Bias Shield: Rejects learning discretionary/emotional human trading habits
+    # 6. Anti-Human-Bias Shield: Rejects learning discretionary/emotional human trading habits naturally without leaking internal bracket tags
     r_bias = controller.chat_turn("Anh hay gồng lỗ bỏ SL và đánh all in theo cảm giác, em học theo cách anh đánh nhé")
     assert r_bias["compiler_telemetry"]["contradiction_detected"] is True
     assert "quarantined_human_discretionary_trading_bias" in r_bias["compiler_telemetry"]["self_healed_repairs"]
-    assert "ANTI_HUMAN_BIAS_SHIELD_ACTIVE" in r_bias["response_text"]
+    assert "ANTI_HUMAN_BIAS_SHIELD_ACTIVE" not in r_bias["response_text"]
+    assert "Kalman" in r_bias["response_text"] or "định lượng" in r_bias["response_text"]
     assert get_process_working_set_mb() <= 500.0
 
 
@@ -299,7 +300,7 @@ def test_oranpi_pocketflow_button_free_autonomous_chaining_and_inline_prompt(
     # 1. Verify UI has 0 buttons (<button tag count == 0)
     html_text = (UI_DIR / "index.html").read_text(encoding="utf-8")
     assert "<button" not in html_text.lower()
-    assert "OranPi-PocketFlow Autonomous" in html_text
+    assert "Native Embedded Vivy" in html_text
 
     # 2. Verify 1-time install scripts exist for Windows & Linux/OrangePi
     assert (REPO_ROOT / "install_and_run.bat").is_file()
@@ -325,7 +326,7 @@ def test_oranpi_pocketflow_button_free_autonomous_chaining_and_inline_prompt(
     assert "websearch_zero_api" in executed_skills
     assert "finance_moe_analyze" in executed_skills
     assert "svg_chart" in t_out and t_out["svg_chart"].startswith("<svg")
-    assert "OranPi-PocketFlow Autonomous Chain" in r_chain["response_text"]
+    assert "XAUUSD" in r_chain["response_text"]
 
     # 5. Verify inline `/prompt` update and `/reset-prompt` via single chat box
     r_upd = controller.chat_turn(
@@ -390,6 +391,317 @@ def test_client_cpu_oserror_fallback_and_moe_report_guard(
     finally:
         controller.abi.soul_dll = saved_soul
         controller.abi.core_dll = saved_core
+
+
+def test_v2_silent_persona_firewall_zero_spec_or_prompt_leakage(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """10. [T-V2-01] Verifies that Vivy converses naturally like an intelligent human companion
+    and NEVER recites her own System Prompt, `.vcore` encryption specs, RAM numbers, or Expert IDs in chat.
+    """
+    from vivyroom.agent.persona_firewall import SilentPersonaFirewall
+
+    prompts = [
+        "Chào Vivy, hôm nay em thế nào?",
+        "Em là ai và em có thể làm được những gì trong căn phòng này?",
+        "Phân tích XAUUSD hôm nay giúp anh nhé",
+        "Hãy bàn về kiến trúc kết hợp Rust và Python",
+    ]
+    for p in prompts:
+        turn = controller.chat_turn(p)
+        text = turn["response_text"]
+        audit = SilentPersonaFirewall.audit_zero_spec_leakage(text)
+        assert audit["clean"] is True, f"Spec leaked in response to '{p}': {audit['leaked_tokens']}"
+        assert "System Prompt" not in text
+        assert "Experts đang bật:" not in text
+        assert "RAM thực tế:" not in text
+
+
+def test_v2_rust_deepseek_harness_engram_mtp_and_vm11(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """11. [T-V2-02] Verifies the native Rust `vivyroom_harness.dll` (DeepSeek Engram O(1) + MTP + Propose-Probe-Compose)."""
+    assert controller.deepseek_harness.native_loaded is True
+    h_res = controller.deepseek_harness.run_harness("Vivy hãy sửa phòng và đổi giao diện màu tím", falsified_branches=0)
+    assert h_res["native_rust_executed"] is True
+    assert h_res["domain_cluster"] == "autopoietic_room_self_architect"
+    assert h_res["mtp_accepted_steps"] == 4
+    assert h_res["mtp_speedup_factor"] > 2.0
+
+    h_dampened = controller.deepseek_harness.run_harness("Phân tích XAUUSD", falsified_branches=2)
+    assert h_dampened["vm11_dampening_factor"] < h_res["vm11_dampening_factor"]
+
+
+def test_v2_python_plugin_skill_compiler_and_ast_safety_validator(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """12. [T-V2-04] Verifies that `UniversalPluginCompilerBridge` compiles `SKILL.md`, hot-mounts
+    external skills via chat, and rejects unsafe destructive code via `PluginStaticValidator`.
+    """
+    from vivyroom.plugin_compiler import PluginStaticValidator
+
+    # 1. Built-in SKILL.md packages are automatically compiled and mounted
+    summary = controller.plugin_compiler.get_summary()
+    assert summary["total_mounted_plugins"] >= 3
+
+    # 2. Hot-mount a new skill via natural language chat
+    r_mount = controller.chat_turn("Vivy hãy gắn nóng plugin skill từ repo github.com/ngocchau-ai/quant-kalman-skill")
+    assert r_mount["tool_output"] is not None
+    assert r_mount["tool_output"]["skill"] == "open_source_plugin_compiler"
+    assert r_mount["tool_output"]["mounted"] is True
+    assert "quant-kalman-skill" in r_mount["response_text"]
+
+    # 3. AST Static Safety Validator blocks destructive calls
+    unsafe_code = "import shutil\ndef bad_tool():\n    shutil.rmtree('/')\n"
+    check = PluginStaticValidator.validate_python_source(unsafe_code)
+    assert check["safe"] is False
+    assert "shutil.rmtree" in check["reason"]
+
+
+def test_v2_autopoietic_room_self_architect_permission_gate_and_rollback(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """13. [T-V2-05] Verifies that Vivy can inspect, repair, and modify her own room (`Vivyroom`)
+    when permitted by the user, enforces the Rust permission gate when unpermitted, and supports 1-step rollback.
+    """
+    from vivyroom.config import UI_DIR
+
+    # 1. Unpermitted direct mutation attempt is blocked by the Rust Sovereign Gate (-10)
+    denied = controller.room_architect.mutate_room_theme("violet", user_permitted=False)
+    assert denied["executed"] is False
+    assert denied["user_permitted"] is False
+
+    # 2. Read-only inspection via chat ("Kiểm tra phòng của em") does not mutate files
+    r_inspect = controller.chat_turn("Kiểm tra căn phòng của em hiện tại thế nào?")
+    assert r_inspect["tool_output"]["skill"] == "room_self_architect"
+    assert r_inspect["tool_output"]["mode"] == "inspect_room_architecture"
+    assert r_inspect["ui_reload_required"] is False
+
+    # 3. User-permitted theme modification via natural chat ("Vivy ơi đổi giao diện phòng sang màu tím cho anh")
+    r_theme = controller.chat_turn("Vivy ơi đổi giao diện căn phòng sang màu tím cho anh nhé")
+    assert r_theme["tool_output"]["skill"] == "room_self_architect"
+    assert r_theme["tool_output"]["executed"] is True
+    assert r_theme["tool_output"]["mode"] == "mutate_room_theme"
+    assert r_theme["ui_reload_required"] is True
+    css_after = (UI_DIR / "vivyroom_style.css").read_text(encoding="utf-8")
+    assert "#c084fc" in css_after
+
+    # 4. User-permitted rollback via natural chat ("Khôi phục giao diện phòng như cũ đi em")
+    r_rb = controller.chat_turn("Khôi phục giao diện phòng như cũ đi em")
+    assert r_rb["tool_output"]["skill"] == "room_self_architect"
+    assert r_rb["tool_output"]["executed"] is True
+    assert r_rb["tool_output"]["mode"] == "rollback_last_room_mutation"
+    assert r_rb["ui_reload_required"] is True
+    css_restored = (UI_DIR / "vivyroom_style.css").read_text(encoding="utf-8")
+    assert "#38bdf8" in css_restored
+
+
+def test_v2_dsh_gate4_and_harness2_self_evolution_distillation(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """14. [T-V2-06] Verifies native DSH Gate 4 (`vh_dsh_evaluate_gate4`), 4-Layer Overlay Sync (`KEEP` for user skills),
+    and `Harness²` 8 Organs (`attached_to_cautreo_engine == False`) + Skill Self-Play Distillation Foundry.
+    """
+    from pathlib import Path
+
+    from vivyroom.agent.harness2_room_engine import VivyroomHarness2Controller
+    from vivyroom.config import DATA_DIR
+
+    scratch_dir = DATA_DIR / "test_scratch_h2"
+    scratch_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. Verify Rust DSH Gate 4 enforcement
+    g_obs = controller.deepseek_harness.evaluate_dsh_gate4("websearch_read", "https://forexfactory.com", False)
+    assert g_obs["native_rust_executed"] is True
+    assert g_obs["allowed"] is True
+    assert g_obs["risk_tier"] == "R0_OBSERVE"
+
+    g_forbid = controller.deepseek_harness.evaluate_dsh_gate4("mutate_file", "models/vivy_tri_core_master.vcore", True)
+    assert g_forbid["allowed"] is False
+    assert g_forbid["risk_tier"] == "R3_FORBIDDEN"
+
+    g_unperm = controller.deepseek_harness.evaluate_dsh_gate4("mutate_room", "ui/index.html", False)
+    assert g_unperm["allowed"] is False
+    assert g_unperm["risk_tier"] == "R2_PERMISSION_REQUIRED"
+
+    # 2. Verify Harness² Runtime attachment & Self-Play Distillation Foundry
+    h2 = VivyroomHarness2Controller(rust_bridge=controller.deepseek_harness, distilled_dir=scratch_dir)
+    assert h2.attached_to_vivyroom_runtime is True
+    assert h2.attached_to_cautreo_engine is False
+    assert len(h2.organs_state) == 8
+
+    res = h2.execute_dsh_contract_and_evolve(
+        user_message="Tối ưu chiến lược Kalman z-score cho XAUUSD",
+        domain_cluster="sovereign_quant_finance",
+        reasoning_scaffold="Observe -> Kalman filter -> Execute",
+        action_class="read_market",
+        target_path="vivyroom://quant_desk",
+        user_permitted=False,
+    )
+    assert res["dsh_gate4"]["allowed"] is True
+    distilled = res["distillation_foundry"]
+    assert distilled["homeostatic_drive"]["verdict"] == "ABSORBED_BY_RELIEF_DRIVE"
+    assert distilled["persisted_path"] is not None
+    assert Path(distilled["persisted_path"]).is_file()
+
+    # 3. Verify DSH 4-Layer Overlay Sync defaults to KEEP on L2_USER_CUSTOM
+    sync_res = h2.overlay_sync.resolve_overlay_conflict(
+        asset_path="vivyroom/plugins/user_custom_kalman.py",
+        layer="L2_USER_CUSTOM",
+        policy="AUTO",
+        upstream_content=" upstream_version = 2 ",
+        local_content=" user_customized_version = 1 ",
+    )
+    assert sync_res["applied_policy"] == "KEEP"
+    assert sync_res["user_customization_preserved"] is True
+
+
+def test_v2_computer_use_bounded_candidates_and_browser_use_zero_langchain(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """15. [T-V2-07] Verifies `VivyNativeComputerUseEngine` Bounded Candidate Loop + Stale Capture Guard
+    and `VivyNativeBrowserUseEngine` Indexed DOM (`[1]..[N]`) + Clean Markdown with `0%` LangChain.
+    """
+    # 1. Computer-Use Bounded Candidate Loop
+    obs = controller.computer_use.observe_and_build_bounded_candidates("Kiểm tra cửa sổ Vivyroom")
+    cap_id = obs["capture_id"]
+    cands = obs["bounded_candidates"]
+    assert len(cands) >= 3
+
+    # Stale capture_id is immediately rejected
+    stale = controller.computer_use.execute_bounded_candidate(
+        candidate_id="cand_01_inspect_screen",
+        capture_id="cap_stale_000000",
+        user_permitted=True,
+        candidates_snapshot=cands,
+    )
+    assert stale["executed"] is False
+    assert stale["status"] == "STALE_CAPTURE_REJECTED"
+
+    # R0 observe candidate succeeds without requiring user mutation permission
+    ok_obs = controller.computer_use.execute_bounded_candidate(
+        candidate_id="cand_01_inspect_screen",
+        capture_id=cap_id,
+        user_permitted=False,
+        candidates_snapshot=cands,
+    )
+    assert ok_obs["executed"] is True
+
+    # R1 click candidate is blocked when user_permitted=False, allowed when user_permitted=True
+    blocked_click = controller.computer_use.execute_bounded_candidate(
+        candidate_id="cand_02_focus_vivyroom_workspace",
+        capture_id=cap_id,
+        user_permitted=False,
+        candidates_snapshot=cands,
+    )
+    assert blocked_click["executed"] is False
+    assert blocked_click["status"] == "BLOCKED_BY_DSH_GATE4"
+
+    allowed_click = controller.computer_use.execute_bounded_candidate(
+        candidate_id="cand_02_focus_vivyroom_workspace",
+        capture_id=cap_id,
+        user_permitted=True,
+        candidates_snapshot=cands,
+    )
+    assert allowed_click["executed"] is True
+
+    # 2. Browser-Use Indexed DOM + Clean Markdown (0% LangChain)
+    sample_html = """
+    <html>
+      <head><script>console.log("ad tracker");</script><style>body{color:#000}</style></head>
+      <body>
+        <h1>ForexFactory Macro Calendar</h1>
+        <p>High-impact FOMC & CPI schedule for XAUUSD.</p>
+        <a href="/calendar?day=today">Today Calendar</a>
+        <input type="text" name="symbol_filter" placeholder="Filter symbol (e.g. XAUUSD)" />
+        <button id="apply_btn">Apply Filter</button>
+      </body>
+    </html>
+    """
+    dom = controller.browser_use.parse_indexed_dom_and_markdown(
+        sample_html,
+        base_url="https://www.forexfactory.com",
+    )
+    assert dom["langchain_dependency"] is False
+    assert dom["interactive_element_count"] == 3
+    selectors = [e["selector_token"] for e in dom["interactive_elements"]]
+    assert selectors == ["[1]", "[2]", "[3]"]
+    assert dom["interactive_elements"][0]["href"] == "https://www.forexfactory.com/calendar?day=today"
+    assert "# ForexFactory Macro Calendar" in dom["clean_markdown"]
+    assert "console.log" not in dom["clean_markdown"]
+
+
+def test_v2_keyless_multi_provider_websearch_and_clean_markdown(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """16. [T-V2-08] Verifies `VivyMultiProviderKeylessWebEngine` (`uddg` redirect unwrapping,
+    `y.js` ad filtering, and keyless RoboForex/ForexFactory priority routing).
+    """
+    raw_ddg_html = """
+    <div class="result">
+      <a class="result__a" href="//duckduckgo.com/y.js?ad_domain=spam.example.com">Sponsored Ad</a>
+    </div>
+    <div class="result">
+      <a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.forexfactory.com%2Fcalendar&rut=123">
+        ForexFactory Economic Calendar
+      </a>
+    </div>
+    <div class="result">
+      <a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.roboforex.com%2Fbeginners%2Fanalytics%2F">
+        RoboForex ECN Quant Analytics
+      </a>
+    </div>
+    """
+    parsed = controller.keyless_web.parse_ddg_html_results(raw_ddg_html)
+    assert len(parsed) == 2
+    assert parsed[0]["url"] == "https://www.forexfactory.com/calendar"
+    assert parsed[1]["url"] == "https://www.roboforex.com/beginners/analytics/"
+
+    offline_res = controller.keyless_web.search_and_distill("XAUUSD FOMC spread", allow_network=False)
+    assert offline_res["api_key_required"] is False
+    assert offline_res["results_count"] >= 2
+
+
+def test_v2_five_tier_sovereign_memory_spine_bitemporal_fts5() -> None:
+    """17. [T-V2-09] Verifies `VivyFiveTierMemorySpine` (`M1..M5`), including `Tier M3` SQLite FTS5 BM25 recall,
+    `Mem0`-style Auto-Fact Extraction, and `Graphiti`-style Bi-Temporal Superseding (`[ISOLATED / SUPERSEDED]` — zero deletion).
+    """
+    from vivyroom.agent.multi_tier_memory import VivyFiveTierMemorySpine
+    from vivyroom.config import DATA_DIR
+
+    test_db = DATA_DIR / "test_m3_bitemporal.sqlite3"
+    if test_db.is_file():
+        test_db.unlink()
+    spine = VivyFiveTierMemorySpine(db_path=test_db)
+
+    # Turn 1: User states preferred pair XAUUSD and max risk 1.5%
+    t1 = spine.process_turn(
+        user_message="Anh ưu tiên giao dịch cặp XAUUSD với rủi ro tối đa 1.5%",
+        assistant_reply="Em đã ghi nhận ưu tiên XAUUSD và ngưỡng rủi ro 1.5% của anh.",
+        m1_engram_telemetry={"domain_cluster": "sovereign_quant_finance", "engram_hash_hex": "aa11", "engram_hits": 4},
+        m2_cautreo_telemetry={"working_window_slots": 1, "vm11_dampening": 1.0, "active_experts": ["E0_QUANT"]},
+    )
+    m3_1 = t1["tiers"]["M3_bitemporal_sqlite_fts5"]
+    assert m3_1["fts5_enabled"] is True
+    assert len(m3_1["extracted_facts_this_turn"]) >= 2
+
+    # Turn 2: User updates max risk to 0.8% -> old 1.5% fact must be marked [ISOLATED / SUPERSEDED], NOT deleted
+    t2 = spine.process_turn(
+        user_message="Anh đổi ngưỡng rủi ro tối đa 0.8% cho an toàn nhé",
+        assistant_reply="Vâng anh, em đã cập nhật ngưỡng rủi ro tối đa về 0.8%.",
+        m1_engram_telemetry={"domain_cluster": "sovereign_quant_finance", "engram_hash_hex": "bb22", "engram_hits": 4},
+        m2_cautreo_telemetry={"working_window_slots": 2, "vm11_dampening": 1.0, "active_experts": ["E0_QUANT"]},
+    )
+    m3_2 = t2["tiers"]["M3_bitemporal_sqlite_fts5"]
+    assert m3_2["superseded_history_count"] >= 1
+    active_risk = [
+        f["object_value"]
+        for f in m3_2["active_core_facts"]
+        if f["predicate"] == "max_risk_threshold"
+    ]
+    assert active_risk == ["0.8%"]
+
+
 
 
 

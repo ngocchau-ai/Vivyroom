@@ -1,0 +1,24 @@
+{
+  "capability_id": "distilled_9efced66ee",
+  "architecture": "HARNESS2_SELF_PLAY_DISTILLED_CAPABILITY_V2",
+  "domain_cluster": "open_source_plugin_compiler",
+  "created_at": "2026-10-24T12:03:38.950014+00:00",
+  "self_play_loop": {
+    "proposer_challenge": "Synthesize zero-bloat deterministic workflow for domain 'open_source_plugin_compiler'.",
+    "solver_trace": [
+      "Step 1 (Propose): Parse intent & constraints from 'Vivy hãy gắn nóng plugin skill từ repo github.com/ngocchau-ai/quant-kalman-skill'",
+      "Step 2 (Probe): Validate via DSH Gate 4 & Cautreo VM-11 (Discover SKILL.md / plugin.json / Python tool -> Run AST Static Safety Validator -> Compil)",
+      "Step 3 (Compose): Emit verified execution plan & natural human dialogue"
+    ],
+    "controller_verification_score": 0.955
+  },
+  "homeostatic_drive": {
+    "candidate_id": "distilled_9efced66ee",
+    "friction_before": 0.45,
+    "friction_after": 0.15,
+    "relief_gain": 0.3,
+    "idle_turns": 0,
+    "verdict": "ABSORBED_BY_RELIEF_DRIVE",
+    "absorbed": true
+  }
+}

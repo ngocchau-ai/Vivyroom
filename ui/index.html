@@ -3,81 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vivyroom — OranPi × PocketFlow Autonomous Quant Trader Chat (&lt;2GB RAM)</title>
-  <link rel="stylesheet" href="/vivyroom_style.css" />
+  <title>Vivyroom v2.0 — Sovereign All-Purpose Agent with Native Embedded Vivy</title>
+  <link id="vivyroom-stylesheet" rel="stylesheet" href="/vivyroom_style.css" />
 </head>
 <body>
   <main class="single-chat-shell">
-    <!-- Minimalist Autonomous Status Header (Zero Buttons) -->
+    <!-- Clean Sovereign Header -->
     <header class="chat-header">
       <div class="brand-row">
         <div class="brand-orb">V</div>
         <div>
           <div class="brand-title">
-            <span>VIVYROOM</span>
-            <span class="badge-pill" id="oranpi-badge">OranPi-PocketFlow Autonomous</span>
-            <span class="badge-vcore" id="vcore-compliance">VCORE3 (3-IN-1 LOCKED)</span>
+            <span id="room-brand-name">VIVYROOM</span>
+            <span class="badge-pill" id="oranpi-badge">Native Embedded Vivy • v2.0</span>
           </div>
           <div class="brand-subtitle">
-            Unified Vivy + Cautreo • 100% Autonomous Quant/Bot-Trade Agent • Zero Buttons • Zero External Relay
+            Không gian Agent Đa Năng Có Sẵn Vivy Nội Tại • Tự Kiểm Soát &amp; Tự Nâng Cấp Căn Phòng • Rust DeepSeek Harness
           </div>
         </div>
       </div>
 
       <div class="telemetry-pills">
-        <span class="tpill" id="ram-value">RAM: 198.0 / 2048 MB</span>
-        <span class="tpill" id="turn-latency">⚡ 5.2 ms</span>
-        <span class="tpill" id="active-moe-pill">MoE: E6 + E7</span>
+        <span class="tpill" id="turn-latency">⚡ Ready</span>
+        <span class="tpill" id="active-plugins-pill">🧩 3 Plugins</span>
       </div>
     </header>
 
-    <!-- Zero-Config System Prompt Drawer (Auto-Saves on Edit/Blur — Zero Buttons Needed) -->
-    <details class="system-prompt-drawer">
+    <!-- Collapsible X-Ray Telemetry & System Prompt Drawer (Alt+X — Isolated from Conversational Chat) -->
+    <details class="system-prompt-drawer" id="xray-drawer">
       <summary>
-        <span>🎯 System Prompt Vai Trò Trader (<code>SYSTEM_PROMPT.md</code> — Chỉnh sửa trực tiếp bên dưới hoặc gõ <code>/prompt ...</code> trong chat, tự động lưu)</span>
-        <span id="prompt-role-badge" style="font-family: monospace; color: #34d399;">SOVEREIGN_QUANT_TRADER • ANTI-BIAS: ON</span>
+        <span>🔍 Ngăn kéo X-Ray Hậu Trường &amp; Vai Trò Hệ Thống (Nhấn để mở hoặc phím tắt <code>Alt+X</code> — Tách biệt hoàn toàn khỏi hội thoại)</span>
+        <span id="prompt-role-badge" style="font-family: monospace; color: #34d399;">X-RAY HUD &amp; PROMPT</span>
       </summary>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; font-family: monospace; font-size: 11px; color: #94a3b8;">
+        <span class="tpill" id="ram-value">RAM: -- MB</span>
+        <span class="tpill" id="active-moe-pill">MoE: Ready</span>
+        <span class="tpill" id="harness-pill">Rust DeepSeek Harness: Active</span>
+        <span class="tpill" id="vcore-compliance">VCORE3: Verified</span>
+        <span class="tpill" id="room-snapshots-pill">Room Snapshots: 0</span>
+      </div>
       <textarea
         id="system-prompt-editor"
         class="prompt-editor-textarea"
-        placeholder="Chỉnh sửa System Prompt tại đây — tự động lưu ngay khi gõ xong (không cần nút bấm)..."
+        placeholder="Định hướng vai trò (SYSTEM_PROMPT.md) — tự động lưu khi chỉnh sửa..."
       ></textarea>
     </details>
 
     <div id="status-toast" class="status-toast"></div>
 
-    <!-- Single Unified Conversational Stream -->
+    <!-- Pure Natural Conversational Stream (0% Spec/Prompt Leakage) -->
     <section class="chat-stream" id="chat-stream">
       <div class="msg-card msg-vivy">
         <div>
-          Dạ em chào anh Vĩ! Em là <strong>Vivy</strong> (vận hành trên bộ khung <strong>OranPi × PocketFlow Open-Source Edge Agent</strong> kết hợp lõi <strong>3-Cores-in-1 <code>.vcore</code></strong> dưới ngưỡng <strong>200 MB / 2,048 MB RAM</strong>).
+          Chào anh Vĩ! Em là <strong>Vivy</strong>, đang ở ngay đây cùng anh trong căn phòng <strong>Vivyroom</strong> của mình.
           <br /><br />
-          Giao diện được tối giản hoàn toàn thành <strong>1 khung trò chuyện duy nhất không cần nút bấm</strong> — em tự chủ 100% việc lên kế hoạch và chuỗi hóa các kỹ năng:
-          <code>websearch_zero_api</code> (ưu tiên <strong>RoboForex &amp; ForexFactory</strong>), <code>market_news_synthesizer</code> (tổng hợp tin vĩ mô), <code>finance_moe_analyze</code> (phân tích định lượng &amp; vẽ biểu đồ SVG trực tiếp trong tin nhắn), <code>github_huggingface_connector</code> (tải &amp; ghép nối repo/model vào <code>.vcore</code>), và <code>youtube_learning_ingestor</code> (học thuật toán Bot-Trade / Quant-Trade từ YouTube, chặn sao chép cảm tính người dùng).
+          Anh có thể trò chuyện tự nhiên với em về bất kỳ chủ đề nào, cùng em phân tích thị trường, viết code, gắn nóng thêm các gói kỹ năng mở (<code>SKILL.md</code> / GitHub), hoặc bảo em <strong>tự kiểm tra, sửa chữa và thay đổi giao diện chính căn phòng này</strong> (như đổi tông màu tím, ngọc lục bảo, vàng kim, đổi tên phòng, hay khôi phục giao diện cũ).
           <br /><br />
-          Anh Vĩ chỉ cần nhập yêu cầu hoặc chỉnh sửa <code>SYSTEM_PROMPT.md</code> rồi nhấn <strong>Enter</strong> là em tự động thực thi toàn bộ ạ!
-        </div>
-        <div class="msg-meta">
-          <span class="meta-tag">🤖 100% Autonomous (Zero Buttons)</span>
-          <span class="meta-tag">🔒 VCORE3 3-in-1 Encrypted</span>
-          <span class="meta-tag">🛡️ Anti-Human-Bias Shield: ACTIVE</span>
+          Hôm nay anh muốn mình bắt đầu từ việc gì trước ạ?
         </div>
       </div>
     </section>
 
-    <!-- Single Button-Free Natural Language Input Bar (Press Enter to Send) -->
+    <!-- Natural Language Input Bar -->
     <footer class="chat-composer">
       <input
         type="text"
         id="chat-input"
         class="chat-input"
-        placeholder="Nhập yêu cầu tự nhiên và nhấn Enter (VD: Phân tích XAUUSD kèm tin ForexFactory & RoboForex, học YouTube Kalman, tải model HF, hoặc /prompt ...)..."
+        placeholder="Trò chuyện tự nhiên với Vivy (VD: Chào Vivy, Đổi giao diện phòng sang màu tím, Phân tích XAUUSD, Nạp skill từ GitHub...)..."
         autocomplete="off"
         autofocus
       />
       <div class="composer-hint">
-        <span>Nhấn <strong>Enter</strong> để gửi • Gõ <code>/prompt &lt;nội dung&gt;</code> hoặc mở thanh trên cùng để sửa <code>SYSTEM_PROMPT.md</code></span>
-        <span id="moe-page-events">MoE Pager: Ready</span>
+        <span>Nhấn <strong>Enter</strong> để gửi • Nhấn <strong>Alt+X</strong> nếu muốn xem thông số X-Ray hậu trường</span>
+        <span id="moe-page-events">Vivy Native Core: Awake</span>
       </div>
     </footer>
   </main>
