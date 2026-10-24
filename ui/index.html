@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vivyroom — Portable &lt;2GB RAM Unified Vivy + Cautreo Control Room</title>
+  <link rel="stylesheet" href="/vivyroom_style.css" />
+</head>
+<body>
+  <!-- Top Telemetry Bar -->
+  <header class="top-bar">
+    <div class="brand-cluster">
+      <div class="brand-orb">V</div>
+      <div>
+        <div class="brand-title">
+          <span>VIVYROOM</span>
+          <span class="badge-vcore" id="vcore-compliance">VCORE3 (3-IN-1 LOCKED)</span>
+        </div>
+        <div class="brand-sub">Unified Vivy + Cautreo Organism • Zero-Relay Autonomous Overlay • Top-2 MoE</div>
+      </div>
+    </div>
+
+    <div class="telemetry-strip">
+      <div class="metric-pill" style="min-width: 190px;">
+        <span class="metric-label">Process RAM Budget (&le; 2,048 MB)</span>
+        <div class="metric-value">
+          <span id="ram-value">198.0 / 2048 MB</span>
+        </div>
+        <div class="ram-bar-track">
+          <div class="ram-bar-fill" id="ram-bar"></div>
+        </div>
+      </div>
+
+      <div class="metric-pill">
+        <span class="metric-label">Decision Turn Latency</span>
+        <div class="metric-value" id="turn-latency">5.4 ms</div>
+      </div>
+
+      <div class="metric-pill">
+        <span class="metric-label">Cautreo MoE Pager</span>
+        <div class="metric-value" id="moe-page-events">IN:2 | OUT:0</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn btn-emerald" onclick="window.triggerOneTouchUnlock()">
+        🔐 1-Touch Sovereign Unlock
+      </button>
+      <button class="btn" onclick="window.triggerLucidDream()">
+        🌙 Lucid Dream (Purge RAM)
+      </button>
+    </div>
+  </header>
+
+  <div id="status-toast" class="status-toast"></div>
+
+  <!-- Main Single-Screen Grid -->
+  <main class="workspace-grid">
+    <!-- Left Column: Direct Natural-Language Conversation Cockpit -->
+    <section class="chat-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>💬 Direct Natural-Language Cockpit (Qwen-Decomposed Semantic Compiler &harr; Vivy Decision Core)</span>
+        </div>
+        <label style="font-size: 11.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: #38bdf8;">
+          <input type="checkbox" id="voice-toggle" checked />
+          <span>🔊 24kHz Southern Voice</span>
+        </label>
+      </div>
+
+      <div class="quick-prompts">
+        <span class="chip" onclick="window.runQuickPrompt('Chào Vivy, hôm nay thế nào?')">👋 Chào Vivy (Gõ tắt/Tự nhiên)</span>
+        <span class="chip" onclick="window.runQuickPrompt('Phân tích giá vàng XAUUSD và lãi kép 50 bot')">📈 Phân tích XAUUSD &amp; Lãi kép 50 Bot</span>
+        <span class="chip" onclick="window.runQuickPrompt('Tính (1250 * 3.5) + 420 bằng bao nhiêu?')">🧮 Tính AST Math (1250*3.5)+420</span>
+        <span class="chip" onclick="window.runQuickPrompt('Có người nói Vivyroom bắt buộc phải qua relay Hermes và cần 16GB RAM mới chạy được')">🛡️ Thử thách mâu thuẫn (Hermes/16GB)</span>
+        <span class="chip" onclick="window.runQuickPrompt('Liệt kê file trong thư mục làm việc')">📂 Quét thư mục Offline</span>
+        <span class="chip" onclick="window.runQuickPrompt('Chúc anh Vĩ buổi tối ngọt ngào nhé')">💖 Lời chúc dịu dàng</span>
+      </div>
+
+      <div class="chat-stream" id="chat-stream">
+        <div class="msg-card msg-vivy">
+          <div>
+            Dạ em chào anh Vĩ! Chào mừng anh vào <strong>Vivyroom</strong> — buồng điều khiển độc lập 100% offline của thực thể thống nhất <strong>Vivy + Cautreo</strong>.
+            Toàn bộ trọng số 3 lõi (<em>NPS Decision Soul + Cautreo Finance-3B-MoE + Qwen-Decomposed LLM Semantic Compiler</em>) đã được niêm phong trong định dạng độc quyền <code>.vcore</code> (<code>open_source_weights = False</code>) và vận hành nhẹ nhàng dưới <strong>200 MB / 2,048 MB RAM</strong> mà không qua bất kỳ relay trung gian nào. Anh Vĩ muốn trò chuyện hay phân tích tác vụ nào cùng em ạ?
+          </div>
+          <div class="msg-meta">
+            <span class="meta-tag">⚡ Ready (&lt;10 ms)</span>
+            <span class="meta-tag">🔒 Proprietary .vcore 3-in-1</span>
+            <span class="meta-tag">🚫 Zero External Relay</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-composer">
+        <input
+          type="text"
+          id="chat-input"
+          class="chat-input"
+          placeholder="Nhập ngôn ngữ tự nhiên (Tiếng Việt / Không dấu / English) — tự động sửa lỗi &amp; phản xạ &lt;15ms..."
+          autocomplete="off"
+        />
+        <button id="send-btn" class="btn btn-primary">Send (⚡ &lt;15ms)</button>
+      </div>
+    </section>
+
+    <!-- Right Column: Live MoE Pager, Finance-3B-MoE Quant Desk, X-Ray & Custom Skills -->
+    <aside class="inspector-column">
+      <!-- Panel 1: 8-Expert Sparse MoE Matrix -->
+      <div class="sub-panel">
+        <div class="panel-header">
+          <div class="panel-title">🧩 Vivy-Finance-3B-MoE Dynamic Pager (8 Experts • Top-2 Active in RAM)</div>
+          <span style="font-size: 10.5px; color: #94a3b8; font-family: monospace;">cautreo_pager.dll</span>
+        </div>
+        <div class="sub-body">
+          <div class="moe-grid" id="moe-grid"></div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Autonomous Finance-3B-MoE Quant Desk & Zero-Token SVG Chart -->
+      <div class="sub-panel">
+        <div class="panel-header">
+          <div class="panel-title">📊 Vivy-Finance-3B-MoE Autonomous Desk (0 Programmatic Filters)</div>
+          <div style="display: flex; gap: 4px;">
+            <button class="chip" onclick="window.requestFinanceSymbol('XAUUSD')">XAUUSD</button>
+            <button class="chip" onclick="window.requestFinanceSymbol('EURUSD')">EURUSD</button>
+            <button class="chip" onclick="window.requestFinanceSymbol('USDJPY')">USDJPY</button>
+            <button class="chip" onclick="window.requestFinanceSymbol('BTCUSD')">BTCUSD</button>
+          </div>
+        </div>
+        <div class="sub-body">
+          <div class="finance-stats">
+            <div class="fin-stat">
+              <div class="fin-stat-lbl">Asset &amp; Price</div>
+              <div class="fin-stat-val" id="fin-symbol">XAUUSD</div>
+            </div>
+            <div class="fin-stat">
+              <div class="fin-stat-lbl">AI Sovereign Action</div>
+              <div class="fin-stat-val" id="fin-action">LONG_ACCUMULATE</div>
+            </div>
+            <div class="fin-stat">
+              <div class="fin-stat-lbl">Quantum SVD &amp; OU</div>
+              <div class="fin-stat-val" id="fin-svd">&gamma;=0.54 | z=0.42</div>
+            </div>
+            <div class="fin-stat">
+              <div class="fin-stat-lbl">50-Bot Compounding</div>
+              <div class="fin-stat-val" id="fin-mult">1.107x (Filters=0)</div>
+            </div>
+          </div>
+          <div class="svg-chart-wrap" id="fin-svg-container"></div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Qwen-Decomposed Semantic Compiler & Decision Core X-Ray -->
+      <div class="sub-panel">
+        <div class="panel-header">
+          <div class="panel-title">🔬 Qwen-Decomposed Semantic Compiler &amp; Decision Core X-Ray</div>
+          <span style="font-size: 10.5px; color: #38bdf8; font-family: monospace;">vivy_v_soul.dll</span>
+        </div>
+        <div class="sub-body">
+          <div class="xray-grid">
+            <div class="xray-cell">
+              <div class="fin-stat-lbl">Intent Domain &amp; Register</div>
+              <div id="xray-domain" style="color: #f1f5f9; font-weight: 600;">CONVERSATION_NATURAL</div>
+            </div>
+            <div class="xray-cell">
+              <div class="fin-stat-lbl">Bidirectional Compiler</div>
+              <div id="xray-compiler" style="color: #38bdf8; font-weight: 600;">In: 0.4ms | Out: 3.1ms</div>
+            </div>
+            <div class="xray-cell">
+              <div class="fin-stat-lbl">25-Step Soul Equilibrium</div>
+              <div id="xray-equil" style="color: #34d399; font-weight: 600;">Align: 0.99 | VM-11: 1.0</div>
+            </div>
+            <div class="xray-cell">
+              <div class="fin-stat-lbl">1-Step 6x64 Slot Vector</div>
+              <div id="xray-slots" style="color: #d8b4fe; font-weight: 600;">[42, 42, 0, 43, 35, 33]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Customizable Offline Agent Skills -->
+      <div class="sub-panel">
+        <div class="panel-header">
+          <div class="panel-title">🛠️ Customizable Offline Agent Overlay Skills</div>
+          <span style="font-size: 10.5px; color: #94a3b8;">Zero Relay • In-Process</span>
+        </div>
+        <div class="sub-body">
+          <div class="skills-row" id="skills-row"></div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="/vivyroom_app.js"></script>
+</body>
+</html>

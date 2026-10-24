@@ -1,0 +1,125 @@
+{
+  "schema_version": "VIVY_CORE_MOE_MANIFEST_V1",
+  "architecture": "3_CORES_IN_1_PROPRIETARY_MOE",
+  "open_source_weights": false,
+  "license": "VIVY-CORE-PROPRIETARY-CLOSED-WEIGHTS-V1",
+  "tri_core_anatomy": {
+    "core_1": "CORE_1_NPS_DECISION_SOUL_500M (vivy_v_soul.dll + vivy_core.dll + 25-Step Equilibrium + Max-Sum BP)",
+    "core_2": "CORE_2_CAUTREO_FINANCE_MOE_VESSEL (cautreo.dll + cautreo_pager.dll + 8 Sparse Experts Top-2 Active, LAW_1401..1411)",
+    "core_3": "CORE_3_QWEN_DECOMPOSED_LLM_COMPILER_3B (Bidirectional NL <-> Decision AST Semantic Transducer & 1-Step Compositional Engine)"
+  },
+  "ram_budget_policy": {
+    "device_ram_limit_mb": 2048,
+    "circuit_breaker_mb": 1740.8,
+    "default_top_k_experts": 2,
+    "low_memory_top_k_experts": 1
+  },
+  "training_telemetry": {
+    "epochs": 180,
+    "initial_loss": 2.209512,
+    "final_loss": 0.002492,
+    "router_top1_accuracy": 1.0,
+    "training_duration_sec": 2.989
+  },
+  "master_container": {
+    "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\vivy_tri_core_master.vcore",
+    "size_bytes": 3611137,
+    "file_sha256": "caecfecb6a38a3e9c0e02979b8f2b7885ed0204aa53e735d020f0be077e2f914",
+    "format_version": "VIVY_CORE_TRI_ENC_V1",
+    "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+    "open_source_weights": false,
+    "container_role": "VIVY_TRI_CORE_3_IN_1_MASTER",
+    "tensor_count": 171,
+    "uncompressed_bytes": 4354128
+  },
+  "moe_expert_containers": [
+    {
+      "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\experts\\expert_00_quantum_microstructure.vcore",
+      "size_bytes": 112345,
+      "file_sha256": "e0adafcd6d505cbb4f2485e3af7d35879aa7fdc43a3821cb45ec6ccf377ad64f",
+      "format_version": "VIVY_CORE_TRI_ENC_V1",
+      "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+      "open_source_weights": false,
+      "container_role": "VIVY_MOE_EXPERT_E0_QUANTUM_MICROSTRUCTURE",
+      "tensor_count": 29,
+      "uncompressed_bytes": 153728
+    },
+    {
+      "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\experts\\expert_01_ou_kalman_velocity.vcore",
+      "size_bytes": 107495,
+      "file_sha256": "d0c0045b84d4b5cdfefed1c6dbffe2d8be4c70d12001960e5e4446f9ff42b707",
+      "format_version": "VIVY_CORE_TRI_ENC_V1",
+      "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+      "open_source_weights": false,
+      "container_role": "VIVY_MOE_EXPERT_E1_OU_KALMAN_VELOCITY",
+      "tensor_count": 29,
+      "uncompressed_bytes": 153728
+    },
+    {
+      "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\experts\\expert_02_50bot_4pillar_compound.vcore",
+      "size_bytes": 108045,
+      "file_sha256": "721fd0377a5db096e6c8c6a58cb43b49f94183e5237df2edfacfa7c9f1a5f8ce",
+      "format_version": "VIVY_CORE_TRI_ENC_V1",
+      "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+      "open_source_weights": false,
+      "container_role": "VIVY_MOE_EXPERT_E2_50BOT_4PILLAR_COMPOUND",
+      "tensor_count": 29,
+      "uncompressed_bytes": 153728
+    },
+    {
+      "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\experts\\expert_03_multi_asset_xauusd.vcore",
+      "size_bytes": 110806,
+      "file_sha256": "ece9bebe040f5c1a03d84ca5fad75e333574db7a91cc1b1a0dcd0031298e4f51",
+      "format_version": "VIVY_CORE_TRI_ENC_V1",
+      "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+      "open_source_weights": false,
+      "container_role": "VIVY_MOE_EXPERT_E3_MULTI_ASSET_XAUUSD",
+      "tensor_count": 29,
+      "uncompressed_bytes": 153728
+    },
+    {
+      "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\experts\\expert_04_mtf_range_svg_visual.vcore",
+      "size_bytes": 93388,
+      "file_sha256": "acf60617d6519b02066d658d52cfa185c55e657e2016304c8e9db19b96b0fa6e",
+      "format_version": "VIVY_CORE_TRI_ENC_V1",
+      "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+      "open_source_weights": false,
+      "container_role": "VIVY_MOE_EXPERT_E4_MTF_RANGE_SVG_VISUAL",
+      "tensor_count": 24,
+      "uncompressed_bytes": 127104
+    },
+    {
+      "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\experts\\expert_05_swe_code_agent_tools.vcore",
+      "size_bytes": 91885,
+      "file_sha256": "3100e674a853065f578c9a5b6c165b678b9c5e95775c0b946ffbac827957eb92",
+      "format_version": "VIVY_CORE_TRI_ENC_V1",
+      "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+      "open_source_weights": false,
+      "container_role": "VIVY_MOE_EXPERT_E5_SWE_CODE_AGENT_TOOLS",
+      "tensor_count": 24,
+      "uncompressed_bytes": 127104
+    },
+    {
+      "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\experts\\expert_06_compositional_dialogue_voice.vcore",
+      "size_bytes": 89811,
+      "file_sha256": "48a57ca1a1f7fd62ba50ec5de1e0432f401d84fc3d68ba349c2df66e16617604",
+      "format_version": "VIVY_CORE_TRI_ENC_V1",
+      "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+      "open_source_weights": false,
+      "container_role": "VIVY_MOE_EXPERT_E6_COMPOSITIONAL_DIALOGUE_VOICE",
+      "tensor_count": 24,
+      "uncompressed_bytes": 127104
+    },
+    {
+      "path": "D:\\91s- T\u00e1i c\u1ea5u tr\u00fac l\u00e2n th\u1ee9 4\\Vivyroom\\models\\experts\\expert_07_vm11_dream_evolution.vcore",
+      "size_bytes": 86546,
+      "file_sha256": "ffa2fe4113353384dbd2cdef1553e5f4b37a5c98051178bc12d95590d5a1fa17",
+      "format_version": "VIVY_CORE_TRI_ENC_V1",
+      "architecture": "3_CORES_IN_1_UNIFIED_ORGANISM",
+      "open_source_weights": false,
+      "container_role": "VIVY_MOE_EXPERT_E7_VM11_DREAM_EVOLUTION",
+      "tensor_count": 24,
+      "uncompressed_bytes": 127104
+    }
+  ]
+}
