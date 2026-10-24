@@ -339,3 +339,21 @@ def test_oranpi_pocketflow_button_free_autonomous_chaining_and_inline_prompt(
     assert r_rst["tool_output"]["role"] == "SOVEREIGN_QUANT_AND_ALGO_BOT_TRADER"
 
 
+def test_zero_pip_and_pure_numpy_fallback_hermes_venv_resilience() -> None:
+    """8. Verifies that `vivyroom._pure_numpy_fallback` and `ensure_one_time_dependencies()`
+    work with 0 crashes even when `pip` and compiled C `numpy` are absent (e.g. `hermes-agent\\venv`).
+    """
+    from vivyroom import _pure_numpy_fallback as pnp
+    from vivyroom.__main__ import ensure_one_time_dependencies
+
+    ensure_one_time_dependencies()
+
+    a = pnp.array([[1.0, 2.0], [3.0, 4.0]], dtype=pnp.float32)
+    b = pnp.array([0.5, 1.5], dtype=pnp.float32)
+    c = a @ b
+    assert pnp.allclose(c, pnp.array([3.5, 7.5], dtype=pnp.float32))
+    assert pnp.argmax(c) == 1
+    assert abs(pnp.linalg.norm(b) - (0.25 + 2.25) ** 0.5) < 1e-5
+
+
+

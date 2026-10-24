@@ -66,14 +66,12 @@ def _derive_encryption_and_mac_keys(master_key: bytes, salt: bytes, nonce: bytes
 
 
 def _xor_shake256_keystream(data: bytes, enc_key: bytes, nonce: bytes) -> bytes:
-    """Applies a fast C-accelerated SHAKE-256 counter-mode keystream via numpy uint64 XOR."""
+    """Applies a fast C-accelerated SHAKE-256 counter-mode keystream via native C-long XOR."""
     n_bytes = len(data)
     if n_bytes == 0:
         return b""
     stream = hashlib.shake_256(enc_key + nonce + b"VCORE3_STREAM").digest(n_bytes)
-    a = np.frombuffer(data, dtype=np.uint8)
-    b = np.frombuffer(stream, dtype=np.uint8)
-    return np.bitwise_xor(a, b).tobytes()
+    return (int.from_bytes(data, "little") ^ int.from_bytes(stream, "little")).to_bytes(n_bytes, "little")
 
 
 def encrypt_tensors_to_vcore_bytes(

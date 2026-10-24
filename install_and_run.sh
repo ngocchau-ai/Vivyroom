@@ -9,18 +9,5 @@ if ! command -v python3 >/dev/null 2>&1; then
     PYTHON_BIN="python"
 fi
 
-if [ ! -f ".vivyroom_installed" ]; then
-    echo "[Vivyroom] First-time setup on Linux / OrangePi: checking runtime..."
-    if [ ! -d ".venv" ] && "$PYTHON_BIN" -m venv .venv >/dev/null 2>&1; then
-        .venv/bin/python -m pip install --quiet -r requirements.txt
-    else
-        "$PYTHON_BIN" -m pip install --quiet -r requirements.txt || true
-    fi
-    echo "installed=1" > .vivyroom_installed
-fi
-
-if [ -x ".venv/bin/python" ]; then
-    exec .venv/bin/python -m vivyroom "$@"
-else
-    exec "$PYTHON_BIN" -m vivyroom "$@"
-fi
+echo "[Vivyroom] Starting Autonomous OranPi-PocketFlow Single Chat Control Room..."
+exec "$PYTHON_BIN" -m vivyroom "$@"

@@ -26,10 +26,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from safetensors.torch import load_file
 
 from ..auth_one_touch import OneTouchSovereignAuthGate
 from ..config import MODELS_DIR
@@ -113,6 +109,8 @@ _MOE_TRAINING_CORPUS: tuple[tuple[str, int, int], ...] = (
 def _load_safetensors_as_numpy(path: Path) -> dict[str, np.ndarray]:
     if not path.is_file():
         return {}
+    from safetensors.torch import load_file
+
     loaded = load_file(str(path))
     return {k: v.detach().cpu().numpy().astype(np.float32) for k, v in loaded.items()}
 
@@ -126,6 +124,10 @@ def train_and_package_vivy_tri_core_moe(
     decomposes `Vivy-R-Finance-3B (v7.4)` into 8 Sparse Experts, and encrypts all models
     into `.vcore` (`VIVY_CORE_TRI_ENC_V1`, `open_source_weights = False`).
     """
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
     t0 = time.perf_counter()
     if master_key is None:
         master_key = OneTouchSovereignAuthGate().master_key_bytes
