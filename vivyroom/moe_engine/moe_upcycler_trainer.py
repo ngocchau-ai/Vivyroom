@@ -136,8 +136,15 @@ def train_and_package_vivy_tri_core_moe(
     experts_dir = output_models_dir / "experts"
     experts_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Load all real trained source tensors
-    fin_v74 = _load_safetensors_as_numpy(SRC_FINANCE_V74)
+    # 1. Load all real trained source tensors (prioritizing synced Vivy-V-Finance-3B 263-tensor suite)
+    from .vivy_v_finance_loader import load_and_verify_vivy_v_finance_3b
+
+    vivy_v_fin = load_and_verify_vivy_v_finance_3b(output_models_dir / "vivy_v_finance_3b")
+    fin_v74 = (
+        vivy_v_fin["reconstructed_tensors"]
+        if vivy_v_fin.get("ready")
+        else _load_safetensors_as_numpy(SRC_FINANCE_V74)
+    )
     skill_play = _load_safetensors_as_numpy(SRC_SKILL_PLAY)
     llm_3b = _load_safetensors_as_numpy(SRC_LLM_3B_EXTRACTED)
     unified_4b = _load_safetensors_as_numpy(SRC_UNIFIED_4B)

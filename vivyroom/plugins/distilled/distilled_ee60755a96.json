@@ -2,7 +2,7 @@
   "capability_id": "distilled_ee60755a96",
   "architecture": "HARNESS2_SELF_PLAY_DISTILLED_CAPABILITY_V2",
   "domain_cluster": "autopoietic_room_self_architect",
-  "created_at": "2026-10-24T12:03:39.193132+00:00",
+  "created_at": "2026-10-24T13:20:05.483617+00:00",
   "self_play_loop": {
     "proposer_challenge": "Synthesize zero-bloat deterministic workflow for domain 'autopoietic_room_self_architect'.",
     "solver_trace": [

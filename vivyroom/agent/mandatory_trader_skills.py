@@ -331,6 +331,39 @@ def execute_youtube_learning_ingestor(video_url_or_topic: str) -> dict[str, Any]
     }
 
 
+def _explain_macro_event_quant_impact(
+    title: str,
+    country: str,
+    impact: str,
+    forecast: str,
+    previous: str,
+    symbol: str,
+) -> str:
+    low = title.lower()
+    fc_str = f"Dự báo `{forecast}` so với kỳ trước `{previous}`" if (forecast != "N/A" or previous != "N/A") else "Chờ công bố số liệu trực tiếp"
+    if "cpi" in low or "pce" in low or "inflation" in low:
+        return (
+            f"{fc_str}. Chỉ số lạm phát tác động trực tiếp lên lợi suất thực trái phiếu và định giá đồng `{country}`. "
+            f"Nếu số liệu thực tế cao hơn dự báo (`>{forecast}`), áp lực thắt chặt tiền tệ tăng làm quét thanh khoản hai đầu trước khi định hình xu hướng mới trên `{symbol}`."
+        )
+    if "earnings" in low or "wage" in low or "employment" in low or "nfp" in low or "claim" in low or "unemployment" in low:
+        return (
+            f"{fc_str}. Dữ liệu thị trường lao động và tiền lương của khối `{country}` quyết định sức cầu tiêu dùng và áp lực lạm phát lõi. "
+            f"Biến động lệch chuẩn tại thời điểm ra tin thường tạo xung vận tốc Kalman 1D mạnh trên `{symbol}` trong 15–30 phút đầu."
+        )
+    if "speaks" in low or "fomc" in low or "boe" in low or "ecb" in low or "boj" in low or "rate" in low or "governor" in low:
+        return (
+            f"{fc_str}. Phát biểu chính sách của ngân hàng trung ương (`{country}`) thường gây giãn spread tức thời và quét dừng lỗ (liquidity sweep) ở hai biên vùng cân bằng Ornstein-Uhlenbeck trước khi dòng tiền thuật toán chọn hướng."
+        )
+    if "pmi" in low or "gdp" in low or "retail" in low:
+        return (
+            f"{fc_str}. Chỉ báo tăng trưởng kinh tế vĩ mô (`{country}`) điều chỉnh kỳ vọng dòng vốn tổ chức trung hạn và độ nghiêng phân phối xác suất trên `{symbol}`."
+        )
+    return (
+        f"{fc_str}. Sự kiện mức độ `{impact}` của `{country}` tác động trực tiếp lên cấu trúc thanh khoản vi mô và độ tinh khiết phổ SVD trên `{symbol}`."
+    )
+
+
 def execute_market_news_synthesizer(symbol: str = "XAUUSD") -> dict[str, Any]:
     """4. Synthesizes macro market news & High-Impact calendar from ForexFactory, RoboForex & RSS feeds."""
     t0 = time.perf_counter()
@@ -349,19 +382,24 @@ def execute_market_news_synthesizer(symbol: str = "XAUUSD") -> dict[str, Any]:
                 country = (ev.findtext("country") or "").strip()
                 title = (ev.findtext("title") or "").strip()
                 date_str = (ev.findtext("date") or "").strip()
-                forecast = (ev.findtext("forecast") or "").strip()
-                previous = (ev.findtext("previous") or "").strip()
+                time_str = (ev.findtext("time") or "").strip()
+                forecast = (ev.findtext("forecast") or "").strip() or "N/A"
+                previous = (ev.findtext("previous") or "").strip() or "N/A"
                 if impact in ("High", "Medium") and country in ("USD", "EUR", "JPY", "GBP", "ALL"):
                     live_feed_reached = True
+                    dt_full = f"{date_str} {time_str}".strip()
                     events.append(
                         {
                             "source": "ForexFactory Calendar",
                             "country": country,
                             "impact": impact.upper(),
                             "title": title,
-                            "date": date_str,
-                            "forecast": forecast or "N/A",
-                            "previous": previous or "N/A",
+                            "date": dt_full,
+                            "forecast": forecast,
+                            "previous": previous,
+                            "deep_quant_explanation": _explain_macro_event_quant_impact(
+                                title, country, impact.upper(), forecast, previous, sym
+                            ),
                         }
                     )
                     if len(events) >= 6:
@@ -380,6 +418,9 @@ def execute_market_news_synthesizer(symbol: str = "XAUUSD") -> dict[str, Any]:
                 "date": "Active Macro Window",
                 "forecast": "2.7%",
                 "previous": "2.8%",
+                "deep_quant_explanation": _explain_macro_event_quant_impact(
+                    "US Core PCE / CPI Inflation", "USD", "HIGH", "2.7%", "2.8%", sym
+                ),
             },
             {
                 "source": "ForexFactory Red-Folder",
@@ -389,6 +430,9 @@ def execute_market_news_synthesizer(symbol: str = "XAUUSD") -> dict[str, Any]:
                 "date": "Active Macro Window",
                 "forecast": "185K",
                 "previous": "178K",
+                "deep_quant_explanation": _explain_macro_event_quant_impact(
+                    "US Non-Farm Payrolls (NFP)", "USD", "HIGH", "185K", "178K", sym
+                ),
             },
             {
                 "source": "RoboForex Quant Desk",
@@ -398,6 +442,9 @@ def execute_market_news_synthesizer(symbol: str = "XAUUSD") -> dict[str, Any]:
                 "date": "Intraday M15/M30/H1",
                 "forecast": "Bullish Structural Bid",
                 "previous": "Accumulation",
+                "deep_quant_explanation": _explain_macro_event_quant_impact(
+                    f"RoboForex ECN Order-Flow ({sym})", sym[:3], "HIGH", "Bullish Structural Bid", "Accumulation", sym
+                ),
             },
         ]
 

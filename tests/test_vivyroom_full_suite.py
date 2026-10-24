@@ -702,6 +702,34 @@ def test_v2_five_tier_sovereign_memory_spine_bitemporal_fts5() -> None:
     assert active_risk == ["0.8%"]
 
 
+def test_v2_vivy_v_finance_3b_r105_sync_and_deep_news_reader(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """18. [T-V2-10] Verifies that `Vivy-V-Finance-3B` (`Receipt R-105`: `vivy-v-finance-3b_arch.vcore` +
+    `vivy-v-finance-3b_weights.safetensors` `263` tensors) is synchronized into `Vivyroom` and that
+    follow-up deep news queries ('anh muốn em tổng hợp và đọc từng tin tức quan trọng') produce a genuine
+    item-by-item quantitative breakdown instead of repeating the summary.
+    """
+    vf = controller.vivy_v_finance_suite
+    assert vf["ready"] is True
+    assert vf["model_id"] == "Vivy-V-Finance-3B"
+    assert vf["generation"] == "Vivy-V"
+    assert vf["format_version"] == "VIVY_V_ARCH_ENC_V1"
+    assert vf["architecture_encrypted"] is True
+    assert vf["open_source_architecture"] is False
+    assert vf["open_source_weights"] is True
+    assert vf["open_weights_tensor_count"] == 263
+    assert vf["routing_tensor_count"] == 3
+    assert vf["total_reconstructed_tensors"] == 266
+
+    r_overview = controller.chat_turn("thống kê các tin tức tài chính hôm nay")
+    r_deep = controller.chat_turn("anh muốn em tổng hợp và đọc từng tin tức quan trọng")
+    assert r_deep["response_text"] != r_overview["response_text"]
+    assert "Phân tích tác động định lượng (`Vivy-V-Finance-3B`)" in r_deep["response_text"]
+    assert "Số liệu vĩ mô:" in r_deep["response_text"]
+
+
+
 
 
 

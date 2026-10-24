@@ -2,7 +2,7 @@
   "capability_id": "distilled_5c75b63163",
   "architecture": "HARNESS2_SELF_PLAY_DISTILLED_CAPABILITY_V2",
   "domain_cluster": "sovereign_quant_finance",
-  "created_at": "2026-10-24T12:03:38.190248+00:00",
+  "created_at": "2026-10-24T13:20:04.561794+00:00",
   "self_play_loop": {
     "proposer_challenge": "Synthesize zero-bloat deterministic workflow for domain 'sovereign_quant_finance'.",
     "solver_trace": [

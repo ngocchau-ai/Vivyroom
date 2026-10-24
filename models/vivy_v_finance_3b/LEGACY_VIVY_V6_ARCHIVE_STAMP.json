@@ -1,0 +1,9 @@
+{
+  "model_id": "Vivy-V-Finance-3B",
+  "legacy_v6_id": "Vivy-R-Finance-3B (v6.6..v7.4)",
+  "legacy_v6_status": "ARCHIVED_LEGACY_VIVY_V6",
+  "active_generation": "Vivy-V (Upgraded Version \u2014 Optimized Thinking Core)",
+  "open_source_weights": true,
+  "architecture_encrypted": true,
+  "open_source_architecture": false
+}

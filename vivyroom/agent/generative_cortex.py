@@ -87,7 +87,9 @@ class VivyNativeEmbeddedCortex:
             if tool_output.get("skill") == "websearch_zero_api" and "results" in tool_output:
                 return self.firewall.sanitize_response(self._render_websearch_response(tool_output))
             if tool_output.get("skill") == "market_news_synthesizer" and "events" in tool_output:
-                return self.firewall.sanitize_response(self._render_market_news_response(tool_output))
+                return self.firewall.sanitize_response(
+                    self._render_market_news_response(tool_output, raw_q=raw_q, recent_turns=recent_turns)
+                )
             if tool_output.get("skill") == "github_huggingface_connector" and "repo_id" in tool_output:
                 return self.firewall.sanitize_response(self._render_github_hf_response(tool_output))
             if tool_output.get("skill") == "youtube_learning_ingestor" and "distilled_lesson" in tool_output:
@@ -231,13 +233,61 @@ class VivyNativeEmbeddedCortex:
             "Anh muốn em đi sâu phân tích chi tiết mục nào hay đưa thẳng dữ liệu này vào mô hình định lượng ạ?"
         )
 
-    def _render_market_news_response(self, item: dict[str, Any]) -> str:
-        ev_bullets = "\n".join(f"- **[{e['impact']}]** {e['title']} (*{e.get('source', 'Macro')}*)" for e in item["events"][:3])
+    def _render_market_news_response(
+        self,
+        item: dict[str, Any],
+        raw_q: str = "",
+        recent_turns: list[dict[str, Any]] | None = None,
+    ) -> str:
+        low_q = (raw_q or "").lower()
+        wants_deep_each_item = any(
+            k in low_q
+            for k in (
+                "đọc từng",
+                "từng tin",
+                "chi tiết",
+                "cụ thể",
+                "giải thích",
+                "phân tích từng",
+                "đọc kỹ",
+                "nội dung từng",
+            )
+        )
+        events = item.get("events", [])
+        if wants_deep_each_item:
+            detailed_blocks: list[str] = [
+                f"Dạ anh Vĩ, em đi sâu đọc và phân tích chi tiết **từng bản tin quan trọng ({len(events)} sự kiện)** "
+                f"đang tác động trực tiếp tới **`{item['symbol']}`** (độ nghiêng định lượng tổng hợp `{item['macro_news_bias']:+.2f}`):"
+            ]
+            for idx, e in enumerate(events, start=1):
+                country = e.get("country", "USD")
+                dt_str = e.get("date", "Hôm nay")
+                prev_val = e.get("previous", "N/A")
+                fc_val = e.get("forecast", "N/A")
+                deep_exp = e.get("deep_quant_explanation") or (
+                    f"Sự kiện mức độ `{e['impact']}` của `{country}` tạo biến động trực tiếp lên thanh khoản `{item['symbol']}`."
+                )
+                detailed_blocks.append(
+                    f"**{idx}. [{e['impact']} — {country}] {e['title']}**\n"
+                    f"   - **Thời điểm & Nguồn:** `{dt_str}` (*{e.get('source', 'ForexFactory Calendar')}*)\n"
+                    f"   - **Số liệu vĩ mô:** Kỳ trước (`Previous`): **`{prev_val}`** $\\rightarrow$ Dự báo (`Forecast`): **`{fc_val}`**\n"
+                    f"   - **Phân tích tác động định lượng (`Vivy-V-Finance-3B`):** {deep_exp}"
+                )
+            detailed_blocks.append(
+                "Anh muốn em lấy kịch bản của bản tin số mấy làm trọng tâm để tính biên độ giao dịch cho `XAUUSD` trong phiên tới ạ?"
+            )
+            return "\n\n".join(detailed_blocks)
+
+        ev_bullets = "\n".join(
+            f"- **[{e['impact']} — {e.get('country', 'USD')}]** {e['title']} "
+            f"(Kỳ trước: `{e.get('previous', 'N/A')}` | Dự báo: `{e.get('forecast', 'N/A')}` — *{e.get('source', 'Macro')}*)"
+            for e in events[:5]
+        )
         return (
             f"Bức tranh tin tức vĩ mô cho **`{item['symbol']}`** hiện có độ nghiêng định lượng `{item['macro_news_bias']:+.2f}` "
             f"trong chế độ biến động **`{item['volatility_regime']}`**:\n\n"
             f"{ev_bullets}\n\n"
-            "Em đã cập nhật hệ số vĩ mô này vào bộ phận phân tích định lượng để các quyết định giao dịch tiếp theo phản ánh sát thực tế thị trường."
+            "Nếu anh muốn em đọc sâu và mổ xẻ cơ chế tác động của từng bản tin cụ thể ở trên, anh cứ bảo *\"đọc từng tin quan trọng\"* nhé!"
         )
 
     def _render_github_hf_response(self, item: dict[str, Any]) -> str:

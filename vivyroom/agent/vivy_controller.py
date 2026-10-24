@@ -29,6 +29,7 @@ from ..moe_engine.moe_upcycler_trainer import (
     encode_utterance_sketch_64_np,
     train_and_package_vivy_tri_core_moe,
 )
+from ..moe_engine.vivy_v_finance_loader import load_and_verify_vivy_v_finance_3b
 from ..plugin_compiler import UniversalPluginCompilerBridge
 from .computer_browser_web_suite import (
     VivyMultiProviderKeylessWebEngine,
@@ -69,6 +70,7 @@ class VivyroomAutonomousController:
             )
 
         self.abi = NativeTriCoreABIBridge()
+        self.vivy_v_finance_suite = load_and_verify_vivy_v_finance_3b(self.models_dir / "vivy_v_finance_3b")
         self.deepseek_harness = RustDeepSeekHarnessBridge()
         self.harness2 = VivyroomHarness2Controller(rust_bridge=self.deepseek_harness)
         self.computer_use = VivyNativeComputerUseEngine(rust_bridge=self.deepseek_harness)
@@ -379,6 +381,9 @@ class VivyroomAutonomousController:
                 "page_out_events": self.moe_pager.page_out_events,
             },
             "vcore_audit": vcore_audit,
+            "vivy_v_finance_3b_status": {
+                k: v for k, v in self.vivy_v_finance_suite.items() if k != "reconstructed_tensors"
+            },
             "deepseek_harness_status": {
                 "native_rust_loaded": self.deepseek_harness.native_loaded,
                 "dll_path": str(self.deepseek_harness.dll_path.name),

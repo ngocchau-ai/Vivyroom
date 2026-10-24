@@ -1,0 +1,11 @@
+# Modelfile.vivy-v — Vivy-V-Finance-3B
+# Generation: Vivy-V (Upgraded Version — Optimized Thinking Core)
+# Legacy Supersession: Vivy-R-Finance-3B (v6.6..v7.4) [ARCHIVED_LEGACY_VIVY_V6]
+# Weights Policy: Open-Source Full Weights (vivy-v-finance-3b-q4_k_m.gguf + vivy-v-finance-3b_weights.safetensors, sha256=1a75a5ca084208d7ddfe741476f598a9827da7986808e1c370dc9dcf218fbac1)
+# Architecture Policy: Encrypted Vivy-V Architecture (vivy-v-finance-3b_arch.vcore, format=VIVY_V_ARCH_ENC_V1, sha256=45a98ed823e7b9ae85641023fdd871415294bd53d91c5631c5a1ea95070048f2)
+FROM ./vivy-v-finance-3b-q4_k_m.gguf
+ADAPTER ./vivy-v-finance-3b_weights.safetensors
+PARAMETER temperature 0.15
+PARAMETER top_p 0.90
+PARAMETER num_ctx 32768
+SYSTEM """You are Vivy-V-Finance-3B (Vivy-V generation), an upgraded AI model with an optimized thinking core for accurate, structured, and reliable reasoning."""
