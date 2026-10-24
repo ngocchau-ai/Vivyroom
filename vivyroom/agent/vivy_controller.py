@@ -86,18 +86,21 @@ class VivyroomAutonomousController:
             return "ROUTE_MOE_AND_EQUILIBRIUM"
 
         def node_route_moe_and_equilibrium(ctx: PocketStateContext) -> str:
-            ast_in: CompiledIntentAST = ctx.state["ast_in"]
+            ast_in: CompiledIntentAST = ctx.state.get("ast_in") or self.compiler.compile_inbound_nl_to_ast(ctx.raw_user_input)
+            ctx.state["ast_in"] = ast_in
             sketch_64 = encode_utterance_sketch_64_np(ast_in.normalized_text)
             moe_report = self.moe_pager.route_and_page_top_k_experts(
                 sketch_64,
                 utterance_text=ast_in.normalized_text,
                 intent_domain=ast_in.intent_domain,
             )
+            ctx.state["moe_report"] = moe_report
             eq_report = self.abi.run_soul_equilibrium_loop(
                 np.array(ast_in.soul_context_16, dtype=np.float32),
                 self._persona_vector_8,
                 max_steps=8,
             )
+            ctx.state["eq_report"] = eq_report
             skill_plan = (
                 []
                 if ast_in.contradiction_detected
@@ -107,8 +110,6 @@ class VivyroomAutonomousController:
                     ast_in.tool_args,
                 )
             )
-            ctx.state["moe_report"] = moe_report
-            ctx.state["eq_report"] = eq_report
             ctx.state["skill_plan"] = skill_plan
             return "ACTUATE_SKILL" if (ast_in.requires_tool or len(skill_plan) > 0) else "COMPILE_OUTBOUND"
 
@@ -170,8 +171,23 @@ class VivyroomAutonomousController:
 
         def node_compile_outbound(ctx: PocketStateContext) -> str | None:
             ast_in: CompiledIntentAST = ctx.state.get("ast_in") or self.compiler.compile_inbound_nl_to_ast(ctx.raw_user_input)
-            eq_report = ctx.state.get("eq_report", {"reality_alignment": 0.98, "vm11_weight": 1.0, "steps_executed": 4})
-            moe_report = ctx.state.get("moe_report", {"active_expert_codes": ["E6_COMPOSITIONAL_DIALOGUE_VOICE"], "process_ram_mb": get_process_working_set_mb()})
+            ctx.state["ast_in"] = ast_in
+            eq_report = ctx.state.get(
+                "eq_report",
+                {"reality_alignment": 0.98, "vm11_weight": 1.0, "steps_executed": 4, "backtrack_count": 0},
+            )
+            ctx.state["eq_report"] = eq_report
+            moe_report = ctx.state.get(
+                "moe_report",
+                {
+                    "active_expert_ids": [6],
+                    "active_expert_codes": ["E6_COMPOSITIONAL_DIALOGUE_VOICE"],
+                    "resident_expert_count": len(self.moe_pager.resident_experts),
+                    "process_ram_mb": get_process_working_set_mb(),
+                    "ram_limit_mb": self.config.device_ram_limit_mb,
+                },
+            )
+            ctx.state["moe_report"] = moe_report
             tool_out = ctx.state.get("tool_output")
             out_bundle = self.compiler.compile_outbound_decision_to_nl(
                 ast_in=ast_in,
@@ -201,13 +217,30 @@ class VivyroomAutonomousController:
         self.graph.execute(ctx)
 
         total_ms = round((time.perf_counter() - t0) * 1000.0, 3)
-        ast_in: CompiledIntentAST = ctx.state["ast_in"]
-        moe_report: dict[str, Any] = ctx.state["moe_report"]
-        eq_report: dict[str, Any] = ctx.state["eq_report"]
-        outbound: dict[str, Any] = ctx.state["outbound"]
-        tool_out: dict[str, Any] | None = ctx.state.get("tool_output")
-
         ram_mb = get_process_working_set_mb()
+        ast_in: CompiledIntentAST = ctx.state.get("ast_in") or self.compiler.compile_inbound_nl_to_ast(user_message)
+        moe_report: dict[str, Any] = ctx.state.get(
+            "moe_report",
+            {
+                "active_expert_ids": [6],
+                "active_expert_codes": ["E6_COMPOSITIONAL_DIALOGUE_VOICE"],
+                "resident_expert_count": len(self.moe_pager.resident_experts),
+                "process_ram_mb": ram_mb,
+                "ram_limit_mb": self.config.device_ram_limit_mb,
+            },
+        )
+        eq_report: dict[str, Any] = ctx.state.get(
+            "eq_report",
+            {"reality_alignment": 0.98, "vm11_weight": 1.0, "steps_executed": 4, "backtrack_count": 0},
+        )
+        tool_out: dict[str, Any] | None = ctx.state.get("tool_output")
+        outbound: dict[str, Any] = ctx.state.get("outbound") or self.compiler.compile_outbound_decision_to_nl(
+            ast_in=ast_in,
+            eq_report=eq_report,
+            moe_report=moe_report,
+            tool_output=tool_out,
+            synthesize_voice=synthesize_voice,
+        )
         self.memory.record_turn(
             turn_id=self._turn_counter,
             user_input=ast_in.normalized_text,

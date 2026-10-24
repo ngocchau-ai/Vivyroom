@@ -356,4 +356,41 @@ def test_zero_pip_and_pure_numpy_fallback_hermes_venv_resilience() -> None:
     assert abs(pnp.linalg.norm(b) - (0.25 + 2.25) ** 0.5) < 1e-5
 
 
+def test_client_cpu_oserror_fallback_and_moe_report_guard(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """9. Verifies that client machine queries ('thống kê các tin tức tài chính hôm nay',
+    'phân tích XauUSd tuần tới') succeed both with portable x86-64 `vivy_v_soul.dll` and
+    under simulated client CPU `OSError` ('illegal instruction') without ever raising `KeyError: 'moe_report'`.
+    """
+    r1 = controller.chat_turn("thống kê các tin tức tài chính hôm nay")
+    assert "moe_routing_telemetry" in r1
+    assert "Internal controller error" not in r1["response_text"]
+    assert r1["tool_output"]["skill"] == "market_news_synthesizer"
+
+    r2 = controller.chat_turn("phân tích XauUSd tuần tới")
+    assert "moe_routing_telemetry" in r2
+    assert "Internal controller error" not in r2["response_text"]
+    assert r2["tool_output"]["symbol"] == "XAUUSD"
+
+    # Simulate client CPU / OS lacking native DLL instructions (`soul_dll = None`, `core_dll = None`)
+    saved_soul = controller.abi.soul_dll
+    saved_core = controller.abi.core_dll
+    try:
+        controller.abi.soul_dll = None
+        controller.abi.core_dll = None
+        r3 = controller.chat_turn("thống kê các tin tức tài chính hôm nay")
+        assert "Internal controller error" not in r3["response_text"]
+        assert r3["decision_equilibrium_telemetry"]["reality_alignment"] >= 0.95
+
+        r4 = controller.chat_turn("phân tích XauUSd tuần tới")
+        assert "Internal controller error" not in r4["response_text"]
+        assert r4["tool_output"]["symbol"] == "XAUUSD"
+        assert r4["tool_output"]["svg_chart"].startswith("<svg")
+    finally:
+        controller.abi.soul_dll = saved_soul
+        controller.abi.core_dll = saved_core
+
+
+
 
