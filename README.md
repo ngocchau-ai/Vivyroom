@@ -93,9 +93,24 @@ Vivyroom/
 
 ---
 
-## 4. Quick Start & Verification
+## 4. Mandatory Trader Skills & Zero-Config System Prompt (`SYSTEM_PROMPT.md`)
 
-### 4.1. Launch Single-Screen Unified Cockpit
+1. **Zero-Config Trader System Prompt (`SYSTEM_PROMPT.md`):**
+   - Pre-configured with the **Sovereign Quant & Algo-Bot Trader** persona (`role = SOVEREIGN_QUANT_AND_ALGO_BOT_TRADER`).
+   - Prioritizes autonomous self-learning (`Autopoietic Skill-SP`, `VM-11`, `Cautreo RLS`) focused 100% on **Bot-Trade & Quant-Trade** mathematics.
+   - Enforces the **Anti-Human-Bias Shield (`anti_human_bias_shield = True`)**: blocks imitating emotional/discretionary human trading habits (FOMO, loss averaging / Martingale without edge, removing Stop-Loss).
+   - **Zero Setup Required:** Users downloading `Vivyroom` only need to edit `SYSTEM_PROMPT.md` (or edit it directly inside the single-screen UI) — no `.env`, API keys, or extra configuration needed.
+2. **Four Mandatory Ultra-Lightweight Skills (`vivyroom/agent/mandatory_trader_skills.py`):**
+   - `websearch_zero_api`: Zero-API ultra-lightweight web search (`urllib.request` + `HTMLParser`) with priority routing & ranking for **RoboForex** (`roboforex.com`) and **ForexFactory** (`forexfactory.com`).
+   - `github_huggingface_connector`: Connects directly to GitHub (`api.github.com`) & HuggingFace Hub (`huggingface.co/api/models`) to download repositories or AI models, couple them into `Cautreo WorkingStateWindow4`, and seal the coupled adapter into an encrypted `.vcore` container (`open_source_weights = False`).
+   - `youtube_learning_ingestor`: Extracts YouTube video transcripts/metadata (`< 2 MB` RAM, zero headless browser) and distills mathematical Bot-Trade / Quant-Trade lessons into Cautreo memory.
+   - `market_news_synthesizer`: Synthesizes High-Impact economic calendar events and macro news from ForexFactory, RoboForex, and financial RSS feeds into quantitative `macro_news_bias` $\in [-1.0, +1.0]$.
+
+---
+
+## 5. Quick Start & Verification
+
+### 5.1. Launch Single-Screen Unified Cockpit
 On Windows:
 ```powershell
 .\run_vivyroom.bat
@@ -106,7 +121,7 @@ python -m vivyroom.server --host 127.0.0.1 --port 7860
 ```
 Then open **`http://127.0.0.1:7860`** in any browser.
 
-### 4.2. Run Headless Self-Test & Full Pytest Suite
+### 5.2. Run Headless Self-Test & Full Pytest Suite
 ```bash
 python -m vivyroom.server --self-test
 pytest -q
@@ -114,8 +129,9 @@ pytest -q
 
 ---
 
-## 5. Changelog
+## 6. Changelog
 
 | Agent | Timestamp | Reason |
 |:---|:---|:---|
 | Antigravity IDE | 2026-10-24 11:48 ICT | Initial release of `Vivyroom` v1.0.0: Portable `<2 GB RAM` unified `Vivy + Cautreo` cockpit, proprietary 3-Cores-in-1 `.vcore` encryption, 8-Expert `Vivy-Finance-3B-MoE`, and Qwen-Decomposed Bidirectional Semantic Compiler. |
+| Antigravity IDE | 2026-10-24 12:12 ICT | Added 4 mandatory ultra-lightweight skills (`websearch_zero_api` prioritizing RoboForex & ForexFactory, `github_huggingface_connector`, `youtube_learning_ingestor`, `market_news_synthesizer`) and Zero-Config `SYSTEM_PROMPT.md` with Anti-Human-Bias Shield (`6/6 pytest passed`). |

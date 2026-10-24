@@ -93,6 +93,17 @@ function updateTopTelemetry(status, turn = null) {
   if (status.enabled_skills) {
     renderSkillsToggles(status.enabled_skills);
   }
+  if (status.trader_system_prompt) {
+    const sp = status.trader_system_prompt;
+    const editorEl = document.getElementById("system-prompt-editor");
+    const badgeEl = document.getElementById("prompt-role-badge");
+    if (editorEl && document.activeElement !== editorEl) {
+      editorEl.value = sp.raw_prompt || "";
+    }
+    if (badgeEl) {
+      badgeEl.textContent = `${sp.role.slice(0, 22)} • ANTI-BIAS:${sp.anti_human_bias_shield ? "ON" : "OFF"}`;
+    }
+  }
 }
 
 function renderFinanceReport(fin) {
@@ -284,6 +295,44 @@ window.toggleSkill = async function (skillName, enabled) {
     }
   } catch (err) {
     showToast(`Skill toggle failed: ${err.message}`, "error");
+  }
+};
+
+window.saveSystemPrompt = async function () {
+  const editorEl = document.getElementById("system-prompt-editor");
+  if (!editorEl) return;
+  try {
+    const res = await fetch("/api/system-prompt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt_text: editorEl.value, reset: false }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      updateTopTelemetry(data.status);
+      showToast(`Saved SYSTEM_PROMPT.md (${data.system_prompt.prompt_sha256})`, "success");
+    }
+  } catch (err) {
+    showToast(`Save System Prompt failed: ${err.message}`, "error");
+  }
+};
+
+window.resetSystemPrompt = async function () {
+  try {
+    const res = await fetch("/api/system-prompt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reset: true }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const editorEl = document.getElementById("system-prompt-editor");
+      if (editorEl) editorEl.value = data.system_prompt.raw_prompt;
+      updateTopTelemetry(data.status);
+      showToast("Reset SYSTEM_PROMPT.md to Default Quant/Bot-Trade Trader Prompt", "success");
+    }
+  } catch (err) {
+    showToast(`Reset System Prompt failed: ${err.message}`, "error");
   }
 };
 

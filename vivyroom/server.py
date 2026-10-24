@@ -78,6 +78,12 @@ class VivyroomRequestHandler(BaseHTTPRequestHandler):
             self._send_json(HTTPStatus.OK, {"ok": True, "status": status})
             return
 
+        if route == "/api/system-prompt":
+            with self.controller_lock:
+                prof = self.controller.system_prompt_mgr.get_active_profile().to_dict()
+            self._send_json(HTTPStatus.OK, {"ok": True, "system_prompt": prof})
+            return
+
         if route == "/api/health":
             with self.controller_lock:
                 status = self.controller.get_system_status()
@@ -171,6 +177,39 @@ class VivyroomRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(
                     HTTPStatus.OK,
                     {"ok": True, "enabled_skills": updated_skills, "status": status},
+                )
+                return
+
+            if route == "/api/skills/execute":
+                skill_name = str(body.get("skill_name", "")).strip()
+                skill_args = body.get("args", {})
+                if not isinstance(skill_args, dict):
+                    skill_args = {}
+                with self.controller_lock:
+                    skill_out = self.controller.skills.execute_skill(skill_name, skill_args)
+                    if skill_name == "youtube_learning_ingestor" and "distilled_lesson" in skill_out:
+                        self.controller.memory.record_quant_lesson(skill_out["distilled_lesson"])
+                    elif skill_name == "github_huggingface_connector" and skill_out.get("cautreo_coupled"):
+                        self.controller.memory.record_coupled_model(skill_out)
+                    status = self.controller.get_system_status()
+                self._send_json(
+                    HTTPStatus.OK,
+                    {"ok": True, "skill_output": skill_out, "status": status},
+                )
+                return
+
+            if route == "/api/system-prompt":
+                reset = bool(body.get("reset", False))
+                prompt_text = str(body.get("prompt_text", ""))
+                with self.controller_lock:
+                    if reset:
+                        prof = self.controller.system_prompt_mgr.reset_to_default_trader_prompt()
+                    else:
+                        prof = self.controller.system_prompt_mgr.update_system_prompt(prompt_text)
+                    status = self.controller.get_system_status()
+                self._send_json(
+                    HTTPStatus.OK,
+                    {"ok": True, "system_prompt": prof.to_dict(), "status": status},
                 )
                 return
 

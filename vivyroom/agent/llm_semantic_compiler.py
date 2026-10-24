@@ -38,6 +38,7 @@ import numpy as np
 
 from ..moe_engine.cautreo_moe_pager import CautreoMoEDynamicPager, NativeTriCoreABIBridge
 from ..moe_engine.moe_upcycler_trainer import encode_utterance_sketch_64_np
+from .trader_system_prompt import TraderSystemPromptManager
 
 
 @dataclass(frozen=True)
@@ -144,10 +145,19 @@ class VivyQwenSemanticCompiler:
         )
         lang = "en" if is_english else "vi"
 
-        # 2. Contradiction Detection (Epistemic Integrity Gate)
+        # 2. Contradiction & Anti-Human-Bias Shield Detection (Epistemic Integrity Gate)
         contradiction_detected = False
         contradiction_detail = ""
-        if ("2gb" in lower or "2 gb" in lower) and any(k in lower for k in ("không thể chạy", "bắt buộc 16gb", "phải có gpu")):
+        bias_eval = TraderSystemPromptManager.evaluate_human_bias_shield(normalized)
+        if bias_eval["bias_detected"]:
+            contradiction_detected = True
+            contradiction_detail = (
+                f"[ANTI_HUMAN_BIAS_SHIELD_ACTIVE] Đã chặn học tập theo phong cách giao dịch cảm tính của người dùng "
+                f"({', '.join(bias_eval['quarantined_biases'])}). Theo System Prompt vai trò Trader, Vivy chỉ tự học từ "
+                f"thuật toán Bot-Trade và Quant-Trade (Quantum SVD, OU z-score, 1D Kalman, OFI/VPIN, 50 RoboForex Bots)"
+            )
+            repairs.append("quarantined_human_discretionary_trading_bias")
+        elif ("2gb" in lower or "2 gb" in lower) and any(k in lower for k in ("không thể chạy", "bắt buộc 16gb", "phải có gpu")):
             contradiction_detected = True
             contradiction_detail = (
                 "Vivyroom dùng kiến trúc 3-Cores-in-1 kết hợp Cautreo MoE Pager (Top-2 Experts) và "
@@ -194,6 +204,63 @@ class VivyQwenSemanticCompiler:
             register_mode = "CONTRADICTION_CHALLENGE"
             focus_clause = f"nhận diện ngay điểm mâu thuẫn trong giả định vừa nêu ({contradiction_detail})"
             target_8d = [0.98, 0.82, 0.80, 0.96, 0.84, 0.90, 0.90, 0.75]
+        elif any(k in lower for k in ("youtube", "youtu.be", "xem video", "học từ youtube", "video bài giảng", "youtube learning")):
+            intent_domain = "AGENT_TOOL_ACTION"
+            register_mode = "QUANT_YOUTUBE_LEARNING"
+            requires_tool = True
+            tool_name = "youtube_learning_ingestor"
+            tool_args = {"video_or_topic": normalized}
+            focus_clause = (
+                "trích xuất nội dung kỹ thuật từ YouTube và chưng cất thành định luật Bot-Trade / Quant-Trade "
+                "nạp vào bộ nhớ Cautreo (loại bỏ 100% cảm tính giao dịch cá nhân)"
+            )
+            target_8d = [0.97, 0.88, 0.86, 0.96, 0.86, 0.94, 0.88, 0.86]
+        elif any(k in lower for k in ("github", "huggingface", "tải repo", "tải model", "ghép nối model", "clone repo", "hf.co")):
+            intent_domain = "AGENT_TOOL_ACTION"
+            register_mode = "GITHUB_HF_MODEL_COUPLING"
+            requires_tool = True
+            tool_name = "github_huggingface_connector"
+            tool_args = {"target": normalized, "action": "couple_and_download"}
+            focus_clause = (
+                "kết nối trực tiếp GitHub / HuggingFace để tải về và ghép nối model/repo vào bus Cautreo Window-4, "
+                "đồng thời niêm phong ngay vào định dạng độc quyền `.vcore` 3-Cores-in-1"
+            )
+            target_8d = [0.97, 0.87, 0.85, 0.97, 0.85, 0.94, 0.89, 0.85]
+        elif any(
+            k in lower
+            for k in ("tin tức", "tổng hợp tin", "lịch kinh tế", "cpi", "nfp", "fomc", "market news", "tin vĩ mô", "điểm tin")
+        ):
+            intent_domain = "FINANCE_QUANT_DESK"
+            register_mode = "MACRO_NEWS_SYNTHESIS"
+            sym = "XAUUSD"
+            if "eur" in lower:
+                sym = "EURUSD"
+            elif "jpy" in lower:
+                sym = "USDJPY"
+            elif "btc" in lower:
+                sym = "BTCUSD"
+            requires_tool = True
+            tool_name = "market_news_synthesizer"
+            tool_args = {"symbol": sym}
+            focus_clause = (
+                f"tổng hợp tin tức vĩ mô và lịch kinh tế ForexFactory / RoboForex cho `{sym}`, lượng hóa "
+                f"`macro_news_bias` truyền thẳng vào não định lượng Vivy-Finance-3B-MoE"
+            )
+            target_8d = [0.97, 0.86, 0.84, 0.97, 0.84, 0.92, 0.88, 0.84]
+        elif any(
+            k in lower
+            for k in ("websearch", "tìm kiếm web", "tra cứu", "roboforex", "forexfactory", "copyfx", "spread", "search web")
+        ):
+            intent_domain = "AGENT_TOOL_ACTION"
+            register_mode = "ZERO_API_WEBSEARCH"
+            requires_tool = True
+            tool_name = "websearch_zero_api"
+            tool_args = {"query": normalized}
+            focus_clause = (
+                "kích hoạt skill WebSearch siêu nhẹ không cần API, ưu tiên kết nối trực tiếp tới RoboForex "
+                "và ForexFactory để thu thập dữ liệu phục vụ thuật toán Bot-Trade / Quant-Trade"
+            )
+            target_8d = [0.96, 0.87, 0.85, 0.96, 0.85, 0.93, 0.87, 0.84]
         elif any(
             k in lower
             for k in ("xauusd", "vàng", "gold", "eurusd", "euusd", "usdjpy", "jpgusd", "btcusd", "lãi kép", "50 bot", "kalman", "ofi", "vpin", "biểu đồ", "chart")
@@ -445,6 +512,30 @@ class VivyQwenSemanticCompiler:
                 tool_clause = (
                     f" Chu kỳ `{tool_output['dream_status']}` đã hoàn tất `{tool_output['rounds_completed']}` vòng, "
                     f"giải phóng các trang MoE và đưa RAM về `{tool_output['ram_after_mb']} MB`."
+                )
+            elif ast_in.tool_name == "websearch_zero_api" and "results" in tool_output:
+                top_hits = "; ".join(f"[{r['source']}] {r['title']}" for r in tool_output["results"][:3])
+                tool_clause = (
+                    f" Kết quả WebSearch Zero-API (`{tool_output['results_count']}` nguồn, ưu tiên `{', '.join(tool_output['priority_domains'])}`): "
+                    f"{top_hits}."
+                )
+            elif ast_in.tool_name == "github_huggingface_connector" and "repo_id" in tool_output:
+                tool_clause = (
+                    f" Đã truy cập `{tool_output['platform'].upper()}` (`{tool_output['repo_id']}`), ghép nối vào Cautreo Window-4 "
+                    f"và niêm phong bộ chuyển đổi tại `{tool_output['coupled_vcore_path']}` (`{tool_output['coupled_vcore_size_bytes']} B`, "
+                    f"`open_source_weights = {tool_output['open_source_weights']}`)."
+                )
+            elif ast_in.tool_name == "youtube_learning_ingestor" and "distilled_lesson" in tool_output:
+                les = tool_output["distilled_lesson"]
+                tool_clause = (
+                    f" Đã trích xuất bài học định lượng `{les['lesson_id']}` («{les['title']}»): "
+                    f"`{les['mathematical_invariant']}` (chặn sao chép cảm tính = `{les['human_discretionary_style_rejected']}`)."
+                )
+            elif ast_in.tool_name == "market_news_synthesizer" and "events" in tool_output:
+                ev_titles = "; ".join(f"[{e['impact']}] {e['title']}" for e in tool_output["events"][:3])
+                tool_clause = (
+                    f" Tổng hợp tin tức thị trường `{tool_output['symbol']}` (`macro_news_bias = {tool_output['macro_news_bias']:+.2f}`, "
+                    f"`{tool_output['volatility_regime']}`): {ev_titles}."
                 )
 
         active_exps = ", ".join(moe_report.get("active_expert_codes", []))

@@ -33,6 +33,7 @@ from .llm_semantic_compiler import CompiledIntentAST, VivyQwenSemanticCompiler
 from .memory_engine import CautreoMemoryAndVM11Engine
 from .pocket_graph import PocketStateContext, ZeroRelayPocketGraph
 from .skills_registry import OfflineSkillsRegistry
+from .trader_system_prompt import TraderSystemPromptManager
 
 
 class VivyroomAutonomousController:
@@ -66,6 +67,7 @@ class VivyroomAutonomousController:
         self.compiler = VivyQwenSemanticCompiler(self.abi, self.moe_pager)
         self.skills = OfflineSkillsRegistry(self.finance_desk, self.moe_pager)
         self.memory = CautreoMemoryAndVM11Engine(max_turns=100)
+        self.system_prompt_mgr = TraderSystemPromptManager()
         self._turn_counter: int = 0
         self._persona_vector_8 = np.array(
             [0.96, 0.98, 0.94, 0.95, 0.92, 0.96, 0.90, 0.94], dtype=np.float32
@@ -107,6 +109,16 @@ class VivyroomAutonomousController:
                 self.memory.register_falsification(f"skill:{ast_in.tool_name}")
             elif ast_in.tool_name == "trigger_lucid_dream":
                 self.memory.dream_cycles_completed += 1
+            elif ast_in.tool_name == "youtube_learning_ingestor" and "distilled_lesson" in tool_out:
+                self.memory.record_quant_lesson(tool_out["distilled_lesson"])
+            elif ast_in.tool_name == "github_huggingface_connector" and tool_out.get("cautreo_coupled"):
+                self.memory.record_coupled_model(
+                    {
+                        "platform": tool_out.get("platform"),
+                        "repo_id": tool_out.get("repo_id"),
+                        "coupled_vcore_path": tool_out.get("coupled_vcore_path"),
+                    }
+                )
             return "COMPILE_OUTBOUND"
 
         def node_compile_outbound(ctx: PocketStateContext) -> str | None:
@@ -213,4 +225,5 @@ class VivyroomAutonomousController:
             "vcore_audit": vcore_audit,
             "enabled_skills": self.skills.enabled_skills,
             "memory_digest": self.memory.get_digest(),
+            "trader_system_prompt": self.system_prompt_mgr.get_active_profile().to_dict(),
         }

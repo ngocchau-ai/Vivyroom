@@ -1,4 +1,15 @@
-"""Customizable Offline Skills Registry for `Vivyroom` (Zero Network Dependency)."""
+"""Customizable Skills Registry for `Vivyroom` (`<= 2 GB RAM`, Zero Paid API Keys).
+
+Includes:
+1. `websearch_zero_api` — Ultra-lightweight Zero-API WebSearch prioritizing **RoboForex** & **ForexFactory**
+2. `github_huggingface_connector` — GitHub & HuggingFace repo/model downloader & Cautreo `.vcore` coupler
+3. `youtube_learning_ingestor` — YouTube transcript & technical metadata ingestor for Bot-Trade/Quant-Trade learning
+4. `market_news_synthesizer` — ForexFactory / RoboForex / RSS macro news synthesizer
+5. `finance_moe_analyze` — Autonomous `Vivy-Finance-3B-MoE` quantitative analysis & Zero-Token SVG chart
+6. `python_ast_math` — Safe AST mathematical expression evaluator
+7. `workspace_list_files` & `workspace_read_file` — Local workspace file inspection
+8. `trigger_lucid_dream` — 4-Stage `LUCID_STANDBY` Dream Consolidation & MoE RAM purge
+"""
 
 from __future__ import annotations
 
@@ -10,6 +21,12 @@ from typing import Any
 from ..config import REPO_ROOT
 from ..moe_engine.cautreo_moe_pager import CautreoMoEDynamicPager
 from ..moe_engine.finance_autonomous_desk import VivyFinanceMoEDesk
+from .mandatory_trader_skills import (
+    execute_github_huggingface_connector,
+    execute_market_news_synthesizer,
+    execute_websearch_zero_api,
+    execute_youtube_learning_ingestor,
+)
 
 _SAFE_MATH_OPS: dict[type[Any], Any] = {
     ast.Add: operator.add,
@@ -39,12 +56,17 @@ def _eval_safe_ast_node(node: ast.AST) -> float:
 
 
 class OfflineSkillsRegistry:
-    """Manages customizable local skills controlled directly by Vivy without external relay."""
+    """Manages customizable skills controlled directly by Vivy without external relay."""
 
     def __init__(self, finance_desk: VivyFinanceMoEDesk, moe_pager: CautreoMoEDynamicPager) -> None:
         self.finance_desk = finance_desk
         self.moe_pager = moe_pager
+        self.last_macro_news_bias: float = 0.22
         self.enabled_skills: dict[str, bool] = {
+            "websearch_zero_api": True,
+            "github_huggingface_connector": True,
+            "youtube_learning_ingestor": True,
+            "market_news_synthesizer": True,
             "finance_moe_analyze": True,
             "python_ast_math": True,
             "workspace_list_files": True,
@@ -57,13 +79,42 @@ class OfflineSkillsRegistry:
             self.enabled_skills[skill_name] = bool(enabled)
         return dict(self.enabled_skills)
 
+    def toggle_skill(self, skill_name: str, enabled: bool) -> dict[str, Any]:
+        return self.set_skill_enabled(skill_name, enabled)
+
     def execute_skill(self, tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
         if not self.enabled_skills.get(tool_name, False):
             return {"executed": False, "reason": f"Skill '{tool_name}' is disabled in customization settings."}
 
+        if tool_name == "websearch_zero_api":
+            query = str(tool_args.get("query", "RoboForex ForexFactory XAUUSD quant algo"))
+            return execute_websearch_zero_api(query=query)
+
+        if tool_name == "github_huggingface_connector":
+            target = str(tool_args.get("target", "ngocchau-ai/Vivyroom"))
+            action = str(tool_args.get("action", "couple_and_download"))
+            return execute_github_huggingface_connector(
+                target=target,
+                action=action,
+                master_key=self.moe_pager.master_key,
+            )
+
+        if tool_name == "youtube_learning_ingestor":
+            video_or_topic = str(tool_args.get("video_or_topic", "Quant Algo Bot Trading Kalman OU"))
+            return execute_youtube_learning_ingestor(video_url_or_topic=video_or_topic)
+
+        if tool_name == "market_news_synthesizer":
+            sym = str(tool_args.get("symbol", "XAUUSD")).upper()
+            news_res = execute_market_news_synthesizer(symbol=sym)
+            self.last_macro_news_bias = float(news_res.get("macro_news_bias", 0.22))
+            return news_res
+
         if tool_name == "finance_moe_analyze":
             sym = str(tool_args.get("symbol", "XAUUSD")).upper()
-            res = self.finance_desk.analyze_market_offline_or_live(symbol=sym)
+            res = self.finance_desk.analyze_market_offline_or_live(
+                symbol=sym,
+                macro_news_bias=self.last_macro_news_bias,
+            )
             res["executed"] = True
             return res
 

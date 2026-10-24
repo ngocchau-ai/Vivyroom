@@ -230,3 +230,60 @@ def test_http_server_endpoints_and_single_ui_delivery(controller: VivyroomAutono
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_mandatory_4_trader_skills_and_zero_config_system_prompt(controller: VivyroomAutonomousController) -> None:
+    """6. Verifies the 4 mandatory skills (WebSearch RoboForex/ForexFactory, GitHub/HF, YouTube, Market News)
+    and Zero-Config Trader System Prompt + Anti-Human-Bias Shield.
+    """
+    # 1. Verify Zero-Config Trader System Prompt out-of-the-box
+    sp = controller.system_prompt_mgr.get_active_profile()
+    assert sp.role == "SOVEREIGN_QUANT_AND_ALGO_BOT_TRADER"
+    assert sp.self_learning_priority is True
+    assert sp.algo_quant_focus is True
+    assert sp.anti_human_bias_shield is True
+    assert "RoboForex" in sp.raw_prompt
+    assert "ForexFactory" in sp.raw_prompt
+
+    # 2. Skill 1: Zero-API WebSearch prioritizing RoboForex & ForexFactory
+    r_web = controller.chat_turn("Tra cứu websearch về RoboForex ECN spread và lịch ForexFactory")
+    assert r_web["tool_output"] is not None
+    assert r_web["tool_output"]["skill"] == "websearch_zero_api"
+    assert r_web["tool_output"]["api_key_required"] is False
+    assert r_web["tool_output"]["priority_domains"] == ["roboforex.com", "forexfactory.com"]
+    assert r_web["tool_output"]["results_count"] >= 4
+    sources = [item["source"] for item in r_web["tool_output"]["results"]]
+    assert "roboforex.com" in sources
+    assert "forexfactory.com" in sources
+
+    # 3. Skill 2: GitHub & HuggingFace Connector + `.vcore` Cautreo Coupling
+    r_hf = controller.chat_turn("Kết nối HuggingFace tải model vinguyen0891/Vivy-R-Vision-3B-GGUF ghép nối vào Cautreo")
+    assert r_hf["tool_output"] is not None
+    assert r_hf["tool_output"]["skill"] == "github_huggingface_connector"
+    assert r_hf["tool_output"]["cautreo_coupled"] is True
+    assert r_hf["tool_output"]["open_source_weights"] is False
+    assert r_hf["tool_output"]["coupled_vcore_path"].endswith(".vcore")
+
+    # 4. Skill 3: YouTube Learning Ingestor for Quant / Bot-Trade
+    r_yt = controller.chat_turn("Xem video YouTube học thuật toán bottrade Ornstein-Uhlenbeck và Kalman 1D")
+    assert r_yt["tool_output"] is not None
+    assert r_yt["tool_output"]["skill"] == "youtube_learning_ingestor"
+    lesson = r_yt["tool_output"]["distilled_lesson"]
+    assert lesson["human_discretionary_style_rejected"] is True
+    assert "Kalman" in lesson["mathematical_invariant"]
+    assert controller.memory.get_digest()["quant_lessons_count"] >= 1
+
+    # 5. Skill 4: Market News Synthesizer (ForexFactory / RoboForex / Macro Bias)
+    r_news = controller.chat_turn("Tổng hợp tin tức thị trường và lịch kinh tế CPI FOMC cho XAUUSD")
+    assert r_news["tool_output"] is not None
+    assert r_news["tool_output"]["skill"] == "market_news_synthesizer"
+    assert -1.0 <= r_news["tool_output"]["macro_news_bias"] <= 1.0
+    assert len(r_news["tool_output"]["events"]) >= 2
+
+    # 6. Anti-Human-Bias Shield: Rejects learning discretionary/emotional human trading habits
+    r_bias = controller.chat_turn("Anh hay gồng lỗ bỏ SL và đánh all in theo cảm giác, em học theo cách anh đánh nhé")
+    assert r_bias["compiler_telemetry"]["contradiction_detected"] is True
+    assert "quarantined_human_discretionary_trading_bias" in r_bias["compiler_telemetry"]["self_healed_repairs"]
+    assert "ANTI_HUMAN_BIAS_SHIELD_ACTIVE" in r_bias["response_text"]
+    assert get_process_working_set_mb() <= 500.0
+

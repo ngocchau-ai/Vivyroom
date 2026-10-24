@@ -28,8 +28,16 @@ class CautreoMemoryAndVM11Engine:
     def __init__(self, max_turns: int = 100) -> None:
         self.history: deque[MemoryTurnRecord] = deque(maxlen=max_turns)
         self.falsified_branches: dict[str, int] = {}
+        self.quant_lessons: deque[dict[str, Any]] = deque(maxlen=50)
+        self.coupled_external_models: list[dict[str, Any]] = []
         self.total_turns: int = 0
         self.dream_cycles_completed: int = 0
+
+    def record_quant_lesson(self, lesson: dict[str, Any]) -> None:
+        self.quant_lessons.append(lesson)
+
+    def record_coupled_model(self, info: dict[str, Any]) -> None:
+        self.coupled_external_models.append(info)
 
     def record_turn(
         self,
@@ -82,5 +90,8 @@ class CautreoMemoryAndVM11Engine:
             "mean_turn_latency_ms": mean_lat,
             "falsified_branches_count": len(self.falsified_branches),
             "dream_cycles_completed": self.dream_cycles_completed,
+            "quant_lessons_count": len(self.quant_lessons),
+            "recent_quant_lessons": list(self.quant_lessons)[-5:],
+            "coupled_external_models": list(self.coupled_external_models)[-5:],
             "recent_turns": recent,
         }
