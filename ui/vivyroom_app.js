@@ -1,19 +1,9 @@
 /**
- * Vivyroom Single-Screen Unified Cockpit Controller (100% Offline, Zero External Deps)
+ * Vivyroom — Button-Free Single-Chat Autonomous Controller (OranPi × PocketFlow Edge Shell)
  */
 
-const EXPERT_META = [
-  { id: 0, code: "E0_QUANTUM_MICROSTRUCTURE", desc: "Quantum SVD Density rho, RMT, OFI/VPIN" },
-  { id: 1, code: "E1_OU_KALMAN_VELOCITY", desc: "Ornstein-Uhlenbeck & 1D Kalman Velocity" },
-  { id: 2, code: "E2_50BOT_4PILLAR_COMPOUND", desc: "50 RoboForex Bots & Compounding C_mult" },
-  { id: 3, code: "E3_MULTI_ASSET_XAUUSD", desc: "XAUUSD/EURUSD/USDJPY Sovereign Matrix" },
-  { id: 4, code: "E4_MTF_RANGE_SVG_VISUAL", desc: "M15/M30/H1 Range & Zero-Token SVG Chart" },
-  { id: 5, code: "E5_SWE_CODE_AGENT_TOOLS", desc: "Python AST Math, Workspace I/O & Tools" },
-  { id: 6, code: "E6_COMPOSITIONAL_DIALOGUE_VOICE", desc: "Qwen-Decomposed Compiler & 24kHz Voice" },
-  { id: 7, code: "E7_VM11_DREAM_EVOLUTION", desc: "VM-11 Dampening & LUCID_STANDBY Dream" },
-];
-
 let isBusy = false;
+let promptSaveTimer = null;
 
 function showToast(msg, type = "success") {
   const banner = document.getElementById("status-toast");
@@ -22,25 +12,7 @@ function showToast(msg, type = "success") {
   banner.className = `status-toast ${type}`;
   setTimeout(() => {
     banner.className = "status-toast";
-  }, 4200);
-}
-
-function renderMoEGrid(activeCodes = [], probs = {}) {
-  const container = document.getElementById("moe-grid");
-  if (!container) return;
-  container.innerHTML = EXPERT_META.map((exp) => {
-    const isActive = activeCodes.includes(exp.code);
-    const probPct = probs[exp.code] !== undefined ? (probs[exp.code] * 100).toFixed(1) + "%" : (isActive ? "TOP-2" : "DISK");
-    return `
-      <div class="expert-box ${isActive ? "active" : ""}">
-        <div class="expert-top">
-          <span><span class="led-dot"></span> ${exp.code.slice(0, 18)}</span>
-          <span style="color:${isActive ? "#34d399" : "#64748b"}">${probPct}</span>
-        </div>
-        <div class="expert-sub">${exp.desc}</div>
-      </div>
-    `;
-  }).join("");
+  }, 3600);
 }
 
 function updateTopTelemetry(status, turn = null) {
@@ -48,16 +20,13 @@ function updateTopTelemetry(status, turn = null) {
   const ram = status.ram_telemetry || {};
   const ramMb = Number(ram.process_ram_mb || 0).toFixed(1);
   const limitMb = Number(ram.device_ram_limit_mb || 2048);
-  const pct = Math.min(100, Math.max(2, (ramMb / limitMb) * 100)).toFixed(1);
 
   const ramValEl = document.getElementById("ram-value");
-  const ramBarEl = document.getElementById("ram-bar");
-  if (ramValEl) ramValEl.textContent = `${ramMb} / ${limitMb} MB (${pct}%)`;
-  if (ramBarEl) ramBarEl.style.width = `${pct}%`;
+  if (ramValEl) ramValEl.textContent = `RAM: ${ramMb} / ${limitMb} MB`;
 
   const pageInEl = document.getElementById("moe-page-events");
   if (pageInEl) {
-    pageInEl.textContent = `IN:${ram.page_in_events || 0} | OUT:${ram.page_out_events || 0}`;
+    pageInEl.textContent = `MoE Pager IN:${ram.page_in_events || 0} | OUT:${ram.page_out_events || 0}`;
   }
 
   const vcoreEl = document.getElementById("vcore-compliance");
@@ -67,32 +36,22 @@ function updateTopTelemetry(status, turn = null) {
       : "UNVERIFIED";
   }
 
+  const oranpiEl = document.getElementById("oranpi-badge");
+  if (oranpiEl && status.oranpi_edge_profile) {
+    oranpiEl.textContent = `OranPi-PocketFlow (${status.oranpi_edge_profile.os_family}/${status.oranpi_edge_profile.arch})`;
+  }
+
   if (turn) {
     const latEl = document.getElementById("turn-latency");
-    if (latEl) latEl.textContent = `${turn.total_turn_latency_ms} ms`;
+    if (latEl) latEl.textContent = `⚡ ${turn.total_turn_latency_ms} ms`;
 
-    const comp = turn.compiler_telemetry || {};
-    const eq = turn.decision_equilibrium_telemetry || {};
     const moe = turn.moe_routing_telemetry || {};
-    renderMoEGrid(moe.active_expert_codes || [], moe.gating_probabilities || {});
-
-    const xrayDomain = document.getElementById("xray-domain");
-    const xrayCompiler = document.getElementById("xray-compiler");
-    const xrayEquil = document.getElementById("xray-equil");
-    const xraySlots = document.getElementById("xray-slots");
-    if (xrayDomain) xrayDomain.textContent = `${comp.intent_domain} (${comp.register_mode})`;
-    if (xrayCompiler) xrayCompiler.textContent = `In: ${comp.inbound_compile_ms}ms | Out: ${comp.outbound_compile_ms}ms`;
-    if (xrayEquil) xrayEquil.textContent = `Align: ${eq.reality_alignment} | VM-11: ${eq.vm11_weight} (${eq.steps_executed} steps)`;
-    if (xraySlots) xraySlots.textContent = `[${(comp.chosen_slot_units_6x64 || []).join(", ")}]`;
-
-    if (turn.tool_output && turn.tool_output.svg_chart) {
-      renderFinanceReport(turn.tool_output);
+    const moePill = document.getElementById("active-moe-pill");
+    if (moePill && moe.active_expert_codes) {
+      moePill.textContent = `MoE: ${moe.active_expert_codes.map((c) => c.slice(0, 2)).join(" + ")}`;
     }
   }
 
-  if (status.enabled_skills) {
-    renderSkillsToggles(status.enabled_skills);
-  }
   if (status.trader_system_prompt) {
     const sp = status.trader_system_prompt;
     const editorEl = document.getElementById("system-prompt-editor");
@@ -101,37 +60,9 @@ function updateTopTelemetry(status, turn = null) {
       editorEl.value = sp.raw_prompt || "";
     }
     if (badgeEl) {
-      badgeEl.textContent = `${sp.role.slice(0, 22)} • ANTI-BIAS:${sp.anti_human_bias_shield ? "ON" : "OFF"}`;
+      badgeEl.textContent = `${sp.role.slice(0, 26)} • ANTI-BIAS: ${sp.anti_human_bias_shield ? "ON" : "OFF"}`;
     }
   }
-}
-
-function renderFinanceReport(fin) {
-  if (!fin) return;
-  const symEl = document.getElementById("fin-symbol");
-  const actEl = document.getElementById("fin-action");
-  const svdEl = document.getElementById("fin-svd");
-  const multEl = document.getElementById("fin-mult");
-  const svgWrap = document.getElementById("fin-svg-container");
-
-  if (symEl) symEl.textContent = `${fin.symbol} @ ${fin.last_price}`;
-  if (actEl) actEl.textContent = `${fin.ai_selected_action} (${fin.market_regime})`;
-  if (svdEl) svdEl.textContent = `γ=${fin.svd_purity_gamma} | z=${fin.ou_zscore}`;
-  if (multEl) multEl.textContent = `${fin.geometric_compounding_c_mult}x (Filters=${fin.programmatic_filters_applied})`;
-  if (svgWrap && fin.svg_chart) {
-    svgWrap.innerHTML = fin.svg_chart;
-  }
-}
-
-function renderSkillsToggles(skillsMap) {
-  const row = document.getElementById("skills-row");
-  if (!row) return;
-  row.innerHTML = Object.entries(skillsMap).map(([name, enabled]) => `
-    <label class="skill-toggle">
-      <input type="checkbox" ${enabled ? "checked" : ""} onchange="window.toggleSkill('${name}', this.checked)" />
-      <span>${name}</span>
-    </label>
-  `).join("");
 }
 
 function appendChatMessage(role, text, turn = null) {
@@ -149,16 +80,34 @@ function appendChatMessage(role, text, turn = null) {
     const comp = turn.compiler_telemetry || {};
     const moe = turn.moe_routing_telemetry || {};
     const hw = turn.hardware_telemetry || {};
+    const toolOut = turn.tool_output || null;
+
+    // Render Zero-Token SVG Chart inline inside the chat bubble whenever Finance-3B-MoE executed
+    if (toolOut && toolOut.svg_chart) {
+      const chartBox = document.createElement("div");
+      chartBox.className = "inline-svg-chart";
+      chartBox.innerHTML = toolOut.svg_chart;
+      div.appendChild(chartBox);
+    }
+
     const meta = document.createElement("div");
     meta.className = "msg-meta";
-    const repairs = (comp.self_healed_repairs || []).length > 0
-      ? `<span class="meta-tag" style="border-color:#f59e0b;color:#fcd34d">Healed: ${comp.self_healed_repairs.join(",")}</span>`
-      : "";
+    const autoChain =
+      toolOut && toolOut.autonomous_skills_executed
+        ? `<span class="meta-tag" style="border-color:#10b981;color:#34d399">🔗 Auto-Chain: ${toolOut.autonomous_skills_executed.join(" → ")}</span>`
+        : toolOut && toolOut.skill
+          ? `<span class="meta-tag" style="border-color:#10b981;color:#34d399">🔧 Auto-Skill: ${toolOut.skill}</span>`
+          : "";
+    const repairs =
+      (comp.self_healed_repairs || []).length > 0
+        ? `<span class="meta-tag" style="border-color:#f59e0b;color:#fcd34d">🛡️ ${comp.self_healed_repairs.join(",")}</span>`
+        : "";
+
     meta.innerHTML = `
       <span class="meta-tag">⚡ ${turn.total_turn_latency_ms} ms</span>
       <span class="meta-tag">🧠 ${(moe.active_expert_codes || []).join(" + ")}</span>
-      <span class="meta-tag">💾 ${hw.process_ram_mb} MB / 2048 MB</span>
-      <span class="meta-tag">🎯 Slots [${(comp.chosen_slot_units_6x64 || []).join(",")}]</span>
+      <span class="meta-tag">💾 ${hw.process_ram_mb} / 2048 MB</span>
+      ${autoChain}
       ${repairs}
     `;
     div.appendChild(meta);
@@ -179,23 +128,19 @@ function appendChatMessage(role, text, turn = null) {
   stream.scrollTop = stream.scrollHeight;
 }
 
-async function sendChatMessage(customText = null) {
+async function sendChatMessage() {
   if (isBusy) return;
   const inputEl = document.getElementById("chat-input");
-  const voiceChk = document.getElementById("voice-toggle");
-  const sendBtn = document.getElementById("send-btn");
+  if (!inputEl) return;
 
-  const text = (customText !== null ? customText : inputEl.value).trim();
+  const text = inputEl.value.trim();
   if (!text) return;
 
-  if (customText === null) inputEl.value = "";
+  inputEl.value = "";
   appendChatMessage("user", text);
 
   isBusy = true;
-  if (sendBtn) {
-    sendBtn.disabled = true;
-    sendBtn.textContent = "Compiling...";
-  }
+  inputEl.placeholder = "Vivy đang tư duy & tự động thực thi kỹ năng (<15ms)...";
 
   try {
     const res = await fetch("/api/chat", {
@@ -203,7 +148,7 @@ async function sendChatMessage(customText = null) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: text,
-        synthesize_voice: voiceChk ? voiceChk.checked : false,
+        synthesize_voice: true,
       }),
     });
     const data = await res.json();
@@ -214,91 +159,16 @@ async function sendChatMessage(customText = null) {
     updateTopTelemetry(data.status, data.turn);
   } catch (err) {
     showToast(`Communication error: ${err.message}`, "error");
-    appendChatMessage("vivy", `[Self-Healed Local Guard] Unable to reach endpoint: ${err.message}`);
+    appendChatMessage("vivy", `[Self-Healed Local Guard] ${err.message}`);
   } finally {
     isBusy = false;
-    if (sendBtn) {
-      sendBtn.disabled = false;
-      sendBtn.textContent = "Send (⚡ <15ms)";
-    }
+    inputEl.placeholder =
+      "Nhập yêu cầu tự nhiên và nhấn Enter (VD: Phân tích XAUUSD kèm tin ForexFactory & RoboForex, học YouTube Kalman, tải model HF, hoặc /prompt ...)...";
+    inputEl.focus();
   }
 }
 
-window.runQuickPrompt = function (text) {
-  sendChatMessage(text);
-};
-
-window.requestFinanceSymbol = async function (symbol) {
-  try {
-    const res = await fetch("/api/finance", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ symbol }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      renderFinanceReport(data.finance);
-      updateTopTelemetry(data.status);
-      showToast(`Finance-3B-MoE analyzed ${symbol} (0 programmatic filters)`, "success");
-    }
-  } catch (err) {
-    showToast(`Finance analysis failed: ${err.message}`, "error");
-  }
-};
-
-window.triggerOneTouchUnlock = async function () {
-  try {
-    const res = await fetch("/api/auth/unlock", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      updateTopTelemetry(data.status);
-      showToast(`1-Touch Sovereign Vault Unlocked: ${data.ticket.vcore_key_fingerprint}`, "success");
-    }
-  } catch (err) {
-    showToast(`Unlock error: ${err.message}`, "error");
-  }
-};
-
-window.triggerLucidDream = async function () {
-  try {
-    const res = await fetch("/api/dream", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rounds: 2 }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      updateTopTelemetry(data.status);
-      renderMoEGrid([], {});
-      showToast(`LUCID_STANDBY Dream completed: RAM=${data.dream.ram_after_mb} MB`, "success");
-    }
-  } catch (err) {
-    showToast(`Dream error: ${err.message}`, "error");
-  }
-};
-
-window.toggleSkill = async function (skillName, enabled) {
-  try {
-    const res = await fetch("/api/skills/toggle", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ skill_name: skillName, enabled }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      updateTopTelemetry(data.status);
-      showToast(`Skill '${skillName}' ${enabled ? "ENABLED" : "DISABLED"}`, "success");
-    }
-  } catch (err) {
-    showToast(`Skill toggle failed: ${err.message}`, "error");
-  }
-};
-
-window.saveSystemPrompt = async function () {
+async function autoSaveSystemPrompt() {
   const editorEl = document.getElementById("system-prompt-editor");
   if (!editorEl) return;
   try {
@@ -310,37 +180,17 @@ window.saveSystemPrompt = async function () {
     const data = await res.json();
     if (data.ok) {
       updateTopTelemetry(data.status);
-      showToast(`Saved SYSTEM_PROMPT.md (${data.system_prompt.prompt_sha256})`, "success");
+      showToast(`Đã tự động lưu SYSTEM_PROMPT.md (${data.system_prompt.prompt_sha256})`, "success");
     }
   } catch (err) {
-    showToast(`Save System Prompt failed: ${err.message}`, "error");
+    showToast(`Auto-save System Prompt failed: ${err.message}`, "error");
   }
-};
-
-window.resetSystemPrompt = async function () {
-  try {
-    const res = await fetch("/api/system-prompt", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reset: true }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      const editorEl = document.getElementById("system-prompt-editor");
-      if (editorEl) editorEl.value = data.system_prompt.raw_prompt;
-      updateTopTelemetry(data.status);
-      showToast("Reset SYSTEM_PROMPT.md to Default Quant/Bot-Trade Trader Prompt", "success");
-    }
-  } catch (err) {
-    showToast(`Reset System Prompt failed: ${err.message}`, "error");
-  }
-};
+}
 
 window.addEventListener("DOMContentLoaded", async () => {
-  renderMoEGrid(["E6_COMPOSITIONAL_DIALOGUE_VOICE", "E7_VM11_DREAM_EVOLUTION"], {});
-
   const inputEl = document.getElementById("chat-input");
-  const sendBtn = document.getElementById("send-btn");
+  const editorEl = document.getElementById("system-prompt-editor");
+
   if (inputEl) {
     inputEl.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -349,8 +199,13 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
-  if (sendBtn) {
-    sendBtn.addEventListener("click", () => sendChatMessage());
+
+  if (editorEl) {
+    editorEl.addEventListener("blur", () => autoSaveSystemPrompt());
+    editorEl.addEventListener("input", () => {
+      if (promptSaveTimer) clearTimeout(promptSaveTimer);
+      promptSaveTimer = setTimeout(() => autoSaveSystemPrompt(), 1200);
+    });
   }
 
   try {
@@ -359,8 +214,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (data.ok) {
       updateTopTelemetry(data.status);
     }
-    await window.requestFinanceSymbol("XAUUSD");
   } catch (err) {
-    showToast(`Initial status check failed: ${err.message}`, "error");
+    showToast(`Status check failed: ${err.message}`, "error");
   }
 });

@@ -287,3 +287,55 @@ def test_mandatory_4_trader_skills_and_zero_config_system_prompt(controller: Viv
     assert "ANTI_HUMAN_BIAS_SHIELD_ACTIVE" in r_bias["response_text"]
     assert get_process_working_set_mb() <= 500.0
 
+
+def test_oranpi_pocketflow_button_free_autonomous_chaining_and_inline_prompt(
+    controller: VivyroomAutonomousController,
+) -> None:
+    """7. Verifies Zero-Button Single-Chat UI, OranPi x PocketFlow autonomous multi-skill chaining,
+    inline `/prompt` System Prompt editing, and 1-time install scripts for Windows & Linux.
+    """
+    from vivyroom.config import REPO_ROOT, UI_DIR
+
+    # 1. Verify UI has 0 buttons (<button tag count == 0)
+    html_text = (UI_DIR / "index.html").read_text(encoding="utf-8")
+    assert "<button" not in html_text.lower()
+    assert "OranPi-PocketFlow Autonomous" in html_text
+
+    # 2. Verify 1-time install scripts exist for Windows & Linux/OrangePi
+    assert (REPO_ROOT / "install_and_run.bat").is_file()
+    assert (REPO_ROOT / "install_and_run.ps1").is_file()
+    assert (REPO_ROOT / "install_and_run.sh").is_file()
+    assert (REPO_ROOT / "vivyroom" / "__main__.py").is_file()
+
+    # 3. Verify OranPi hardware profile in system status
+    st = controller.get_system_status()
+    assert "oranpi_edge_profile" in st
+    assert st["oranpi_edge_profile"]["agent_framework"].startswith("OranPi-PocketFlow")
+
+    # 4. Verify Autonomous Multi-Skill Chaining in a single chat turn
+    r_chain = controller.chat_turn(
+        "Tổng hợp tin tức thị trường ForexFactory, tra cứu websearch RoboForex spread và phân tích biểu đồ vàng XAUUSD"
+    )
+    t_out = r_chain["tool_output"]
+    assert t_out is not None
+    assert "chained_outputs" in t_out
+    assert len(t_out["chained_outputs"]) >= 3
+    executed_skills = t_out["autonomous_skills_executed"]
+    assert "market_news_synthesizer" in executed_skills
+    assert "websearch_zero_api" in executed_skills
+    assert "finance_moe_analyze" in executed_skills
+    assert "svg_chart" in t_out and t_out["svg_chart"].startswith("<svg")
+    assert "OranPi-PocketFlow Autonomous Chain" in r_chain["response_text"]
+
+    # 5. Verify inline `/prompt` update and `/reset-prompt` via single chat box
+    r_upd = controller.chat_turn(
+        "/prompt ROLE: SOVEREIGN_QUANT_BOT_V2\nSELF_LEARNING: TRUE\nFOCUS: QUANT_TRADE, BOT_TRADE\nANTI_HUMAN_BIAS_SHIELD: TRUE"
+    )
+    assert r_upd["tool_output"]["skill"] == "update_system_prompt_inline"
+    assert r_upd["tool_output"]["role"] == "SOVEREIGN_QUANT_BOT_V2"
+
+    r_rst = controller.chat_turn("/reset-prompt")
+    assert r_rst["tool_output"]["skill"] == "update_system_prompt_inline"
+    assert r_rst["tool_output"]["role"] == "SOVEREIGN_QUANT_AND_ALGO_BOT_TRADER"
+
+

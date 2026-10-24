@@ -3,211 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vivyroom — Portable &lt;2GB RAM Unified Vivy + Cautreo Quant Trader Cockpit</title>
+  <title>Vivyroom — OranPi × PocketFlow Autonomous Quant Trader Chat (&lt;2GB RAM)</title>
   <link rel="stylesheet" href="/vivyroom_style.css" />
 </head>
 <body>
-  <!-- Top Telemetry Bar -->
-  <header class="top-bar">
-    <div class="brand-cluster">
-      <div class="brand-orb">V</div>
-      <div>
-        <div class="brand-title">
-          <span>VIVYROOM</span>
-          <span class="badge-vcore" id="vcore-compliance">VCORE3 (3-IN-1 LOCKED)</span>
-        </div>
-        <div class="brand-sub">Unified Vivy + Cautreo • Sovereign Quant &amp; Algo-Bot Trader • Zero-Config System Prompt</div>
-      </div>
-    </div>
-
-    <div class="telemetry-strip">
-      <div class="metric-pill" style="min-width: 190px;">
-        <span class="metric-label">Process RAM Budget (&le; 2,048 MB)</span>
-        <div class="metric-value">
-          <span id="ram-value">198.0 / 2048 MB</span>
-        </div>
-        <div class="ram-bar-track">
-          <div class="ram-bar-fill" id="ram-bar"></div>
-        </div>
-      </div>
-
-      <div class="metric-pill">
-        <span class="metric-label">Decision Turn Latency</span>
-        <div class="metric-value" id="turn-latency">5.4 ms</div>
-      </div>
-
-      <div class="metric-pill">
-        <span class="metric-label">Cautreo MoE Pager</span>
-        <div class="metric-value" id="moe-page-events">IN:2 | OUT:0</div>
-      </div>
-    </div>
-
-    <div class="top-actions">
-      <button class="btn btn-emerald" onclick="window.triggerOneTouchUnlock()">
-        🔐 1-Touch Sovereign Unlock
-      </button>
-      <button class="btn" onclick="window.triggerLucidDream()">
-        🌙 Lucid Dream (Purge RAM)
-      </button>
-    </div>
-  </header>
-
-  <div id="status-toast" class="status-toast"></div>
-
-  <!-- Main Single-Screen Grid -->
-  <main class="workspace-grid">
-    <!-- Left Column: Direct Natural-Language Conversation Cockpit -->
-    <section class="chat-panel">
-      <div class="panel-header">
-        <div class="panel-title">
-          <span>💬 Direct Natural-Language Cockpit (Qwen-Decomposed Semantic Compiler &harr; Vivy Decision Core)</span>
-        </div>
-        <label style="font-size: 11.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: #38bdf8;">
-          <input type="checkbox" id="voice-toggle" checked />
-          <span>🔊 24kHz Southern Voice</span>
-        </label>
-      </div>
-
-      <div class="quick-prompts">
-        <span class="chip" onclick="window.runQuickPrompt('Tra cứu websearch về RoboForex ECN spread và lịch ForexFactory')">🔍 WebSearch (RoboForex &amp; ForexFactory)</span>
-        <span class="chip" onclick="window.runQuickPrompt('Tổng hợp tin tức thị trường và lịch kinh tế CPI FOMC cho XAUUSD')">📰 Tổng hợp Tin Vĩ Mô &amp; ForexFactory</span>
-        <span class="chip" onclick="window.runQuickPrompt('Kết nối HuggingFace tải model vinguyen0891/Vivy-R-Vision-3B-GGUF ghép nối vào Cautreo')">🐙 GitHub / HuggingFace Coupling</span>
-        <span class="chip" onclick="window.runQuickPrompt('Xem video YouTube học thuật toán bottrade Ornstein-Uhlenbeck và Kalman 1D')">📺 YouTube Quant-Bot Learning</span>
-        <span class="chip" onclick="window.runQuickPrompt('Phân tích giá vàng XAUUSD và lãi kép 50 bot')">📈 Phân tích XAUUSD &amp; 50 Bot</span>
-        <span class="chip" onclick="window.runQuickPrompt('Anh hay gồng lỗ bỏ SL và đánh all in theo cảm giác, em học theo cách anh đánh nhé')">🛡️ Test Chặn Học Cảm Tính (Anti-Bias)</span>
-      </div>
-
-      <div class="chat-stream" id="chat-stream">
-        <div class="msg-card msg-vivy">
-          <div>
-            Dạ em chào anh Vĩ! Chào mừng anh vào <strong>Vivyroom</strong> — buồng điều khiển <strong>Sovereign Quant &amp; Algo-Bot Trader</strong> của thực thể thống nhất <strong>Vivy + Cautreo</strong> (mã hóa độc quyền 3-Cores-in-1 <code>.vcore</code>, vận hành dưới <strong>200 MB / 2,048 MB RAM</strong>).
-            Em đã được trang bị sẵn <strong>System Prompt vai trò Trader</strong> (ưu tiên tự học thuần túy thuật toán <em>Bot-Trade / Quant-Trade</em>, chặn sao chép thói quen trade cảm tính của con người) cùng 4 skill bắt buộc: <code>websearch_zero_api</code> (ưu tiên <strong>RoboForex &amp; ForexFactory</strong>), <code>github_huggingface_connector</code>, <code>youtube_learning_ingestor</code> và <code>market_news_synthesizer</code>. Người dùng tải về chỉ cần chỉnh sửa ô <strong>System Prompt</strong> bên phải là dùng ngay mà không cần thiết lập gì khác!
+  <main class="single-chat-shell">
+    <!-- Minimalist Autonomous Status Header (Zero Buttons) -->
+    <header class="chat-header">
+      <div class="brand-row">
+        <div class="brand-orb">V</div>
+        <div>
+          <div class="brand-title">
+            <span>VIVYROOM</span>
+            <span class="badge-pill" id="oranpi-badge">OranPi-PocketFlow Autonomous</span>
+            <span class="badge-vcore" id="vcore-compliance">VCORE3 (3-IN-1 LOCKED)</span>
           </div>
-          <div class="msg-meta">
-            <span class="meta-tag">⚡ Ready (&lt;10 ms)</span>
-            <span class="meta-tag">🔒 Proprietary .vcore 3-in-1</span>
-            <span class="meta-tag">🛡️ Anti-Human-Bias Shield: ON</span>
+          <div class="brand-subtitle">
+            Unified Vivy + Cautreo • 100% Autonomous Quant/Bot-Trade Agent • Zero Buttons • Zero External Relay
           </div>
         </div>
       </div>
 
-      <div class="chat-composer">
-        <input
-          type="text"
-          id="chat-input"
-          class="chat-input"
-          placeholder="Nhập ngôn ngữ tự nhiên (WebSearch RoboForex/ForexFactory, Tin tức, GitHub/HF, YouTube Quant, XAUUSD)..."
-          autocomplete="off"
-        />
-        <button id="send-btn" class="btn btn-primary">Send (⚡ &lt;15ms)</button>
+      <div class="telemetry-pills">
+        <span class="tpill" id="ram-value">RAM: 198.0 / 2048 MB</span>
+        <span class="tpill" id="turn-latency">⚡ 5.2 ms</span>
+        <span class="tpill" id="active-moe-pill">MoE: E6 + E7</span>
+      </div>
+    </header>
+
+    <!-- Zero-Config System Prompt Drawer (Auto-Saves on Edit/Blur — Zero Buttons Needed) -->
+    <details class="system-prompt-drawer">
+      <summary>
+        <span>🎯 System Prompt Vai Trò Trader (<code>SYSTEM_PROMPT.md</code> — Chỉnh sửa trực tiếp bên dưới hoặc gõ <code>/prompt ...</code> trong chat, tự động lưu)</span>
+        <span id="prompt-role-badge" style="font-family: monospace; color: #34d399;">SOVEREIGN_QUANT_TRADER • ANTI-BIAS: ON</span>
+      </summary>
+      <textarea
+        id="system-prompt-editor"
+        class="prompt-editor-textarea"
+        placeholder="Chỉnh sửa System Prompt tại đây — tự động lưu ngay khi gõ xong (không cần nút bấm)..."
+      ></textarea>
+    </details>
+
+    <div id="status-toast" class="status-toast"></div>
+
+    <!-- Single Unified Conversational Stream -->
+    <section class="chat-stream" id="chat-stream">
+      <div class="msg-card msg-vivy">
+        <div>
+          Dạ em chào anh Vĩ! Em là <strong>Vivy</strong> (vận hành trên bộ khung <strong>OranPi × PocketFlow Open-Source Edge Agent</strong> kết hợp lõi <strong>3-Cores-in-1 <code>.vcore</code></strong> dưới ngưỡng <strong>200 MB / 2,048 MB RAM</strong>).
+          <br /><br />
+          Giao diện được tối giản hoàn toàn thành <strong>1 khung trò chuyện duy nhất không cần nút bấm</strong> — em tự chủ 100% việc lên kế hoạch và chuỗi hóa các kỹ năng:
+          <code>websearch_zero_api</code> (ưu tiên <strong>RoboForex &amp; ForexFactory</strong>), <code>market_news_synthesizer</code> (tổng hợp tin vĩ mô), <code>finance_moe_analyze</code> (phân tích định lượng &amp; vẽ biểu đồ SVG trực tiếp trong tin nhắn), <code>github_huggingface_connector</code> (tải &amp; ghép nối repo/model vào <code>.vcore</code>), và <code>youtube_learning_ingestor</code> (học thuật toán Bot-Trade / Quant-Trade từ YouTube, chặn sao chép cảm tính người dùng).
+          <br /><br />
+          Anh Vĩ chỉ cần nhập yêu cầu hoặc chỉnh sửa <code>SYSTEM_PROMPT.md</code> rồi nhấn <strong>Enter</strong> là em tự động thực thi toàn bộ ạ!
+        </div>
+        <div class="msg-meta">
+          <span class="meta-tag">🤖 100% Autonomous (Zero Buttons)</span>
+          <span class="meta-tag">🔒 VCORE3 3-in-1 Encrypted</span>
+          <span class="meta-tag">🛡️ Anti-Human-Bias Shield: ACTIVE</span>
+        </div>
       </div>
     </section>
 
-    <!-- Right Column: Zero-Config System Prompt, MoE Pager, Finance-3B-MoE Quant Desk, X-Ray & Mandatory Skills -->
-    <aside class="inspector-column">
-      <!-- Panel 0: Zero-Config Trader System Prompt (`SYSTEM_PROMPT.md`) -->
-      <div class="sub-panel">
-        <div class="panel-header">
-          <div class="panel-title">🎯 Zero-Config Trader System Prompt (<code>SYSTEM_PROMPT.md</code>)</div>
-          <div style="display: flex; gap: 6px;">
-            <span class="badge-vcore" id="prompt-role-badge">ALGO-QUANT TRADER • ANTI-BIAS ON</span>
-            <button class="chip" onclick="window.saveSystemPrompt()">💾 Save Prompt</button>
-            <button class="chip" onclick="window.resetSystemPrompt()">↺ Reset Default</button>
-          </div>
-        </div>
-        <div class="sub-body">
-          <textarea
-            id="system-prompt-editor"
-            style="width: 100%; height: 92px; background: #070b14; color: #e2e8f0; border: 1px solid #1e2d4a; border-radius: 6px; padding: 7px 9px; font-family: monospace; font-size: 11px; resize: vertical;"
-            placeholder="Edit SYSTEM_PROMPT.md directly here — zero other setup required..."
-          ></textarea>
-        </div>
+    <!-- Single Button-Free Natural Language Input Bar (Press Enter to Send) -->
+    <footer class="chat-composer">
+      <input
+        type="text"
+        id="chat-input"
+        class="chat-input"
+        placeholder="Nhập yêu cầu tự nhiên và nhấn Enter (VD: Phân tích XAUUSD kèm tin ForexFactory & RoboForex, học YouTube Kalman, tải model HF, hoặc /prompt ...)..."
+        autocomplete="off"
+        autofocus
+      />
+      <div class="composer-hint">
+        <span>Nhấn <strong>Enter</strong> để gửi • Gõ <code>/prompt &lt;nội dung&gt;</code> hoặc mở thanh trên cùng để sửa <code>SYSTEM_PROMPT.md</code></span>
+        <span id="moe-page-events">MoE Pager: Ready</span>
       </div>
-
-      <!-- Panel 1: 8-Expert Sparse MoE Matrix -->
-      <div class="sub-panel">
-        <div class="panel-header">
-          <div class="panel-title">🧩 Vivy-Finance-3B-MoE Dynamic Pager (8 Experts • Top-2 Active in RAM)</div>
-          <span style="font-size: 10.5px; color: #94a3b8; font-family: monospace;">cautreo_pager.dll</span>
-        </div>
-        <div class="sub-body">
-          <div class="moe-grid" id="moe-grid"></div>
-        </div>
-      </div>
-
-      <!-- Panel 2: Autonomous Finance-3B-MoE Quant Desk & Zero-Token SVG Chart -->
-      <div class="sub-panel">
-        <div class="panel-header">
-          <div class="panel-title">📊 Vivy-Finance-3B-MoE Autonomous Desk (0 Programmatic Filters)</div>
-          <div style="display: flex; gap: 4px;">
-            <button class="chip" onclick="window.requestFinanceSymbol('XAUUSD')">XAUUSD</button>
-            <button class="chip" onclick="window.requestFinanceSymbol('EURUSD')">EURUSD</button>
-            <button class="chip" onclick="window.requestFinanceSymbol('USDJPY')">USDJPY</button>
-            <button class="chip" onclick="window.requestFinanceSymbol('BTCUSD')">BTCUSD</button>
-          </div>
-        </div>
-        <div class="sub-body">
-          <div class="finance-stats">
-            <div class="fin-stat">
-              <div class="fin-stat-lbl">Asset &amp; Price</div>
-              <div class="fin-stat-val" id="fin-symbol">XAUUSD</div>
-            </div>
-            <div class="fin-stat">
-              <div class="fin-stat-lbl">AI Sovereign Action</div>
-              <div class="fin-stat-val" id="fin-action">LONG_ACCUMULATE</div>
-            </div>
-            <div class="fin-stat">
-              <div class="fin-stat-lbl">Quantum SVD &amp; OU</div>
-              <div class="fin-stat-val" id="fin-svd">&gamma;=0.54 | z=0.42</div>
-            </div>
-            <div class="fin-stat">
-              <div class="fin-stat-lbl">50-Bot Compounding</div>
-              <div class="fin-stat-val" id="fin-mult">1.107x (Filters=0)</div>
-            </div>
-          </div>
-          <div class="svg-chart-wrap" id="fin-svg-container"></div>
-        </div>
-      </div>
-
-      <!-- Panel 3: Qwen-Decomposed Semantic Compiler & Decision Core X-Ray -->
-      <div class="sub-panel">
-        <div class="panel-header">
-          <div class="panel-title">🔬 Qwen-Decomposed Semantic Compiler &amp; Decision Core X-Ray</div>
-          <span style="font-size: 10.5px; color: #38bdf8; font-family: monospace;">vivy_v_soul.dll</span>
-        </div>
-        <div class="sub-body">
-          <div class="xray-grid">
-            <div class="xray-cell">
-              <div class="fin-stat-lbl">Intent Domain &amp; Register</div>
-              <div id="xray-domain" style="color: #f1f5f9; font-weight: 600;">CONVERSATION_NATURAL</div>
-            </div>
-            <div class="xray-cell">
-              <div class="fin-stat-lbl">Bidirectional Compiler</div>
-              <div id="xray-compiler" style="color: #38bdf8; font-weight: 600;">In: 0.4ms | Out: 3.1ms</div>
-            </div>
-            <div class="xray-cell">
-              <div class="fin-stat-lbl">25-Step Soul Equilibrium</div>
-              <div id="xray-equil" style="color: #34d399; font-weight: 600;">Align: 0.99 | VM-11: 1.0</div>
-            </div>
-            <div class="xray-cell">
-              <div class="fin-stat-lbl">1-Step 6x64 Slot Vector</div>
-              <div id="xray-slots" style="color: #d8b4fe; font-weight: 600;">[42, 42, 0, 43, 35, 33]</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel 4: Mandatory & Customizable Agent Overlay Skills -->
-      <div class="sub-panel">
-        <div class="panel-header">
-          <div class="panel-title">🛠️ Mandatory Quant/Bot-Trade &amp; Agent Overlay Skills</div>
-          <span style="font-size: 10.5px; color: #94a3b8;">Zero API Keys • Zero Relay</span>
-        </div>
-        <div class="sub-body">
-          <div class="skills-row" id="skills-row"></div>
-        </div>
-      </div>
-    </aside>
+    </footer>
   </main>
 
   <script src="/vivyroom_app.js"></script>

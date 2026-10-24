@@ -103,6 +103,7 @@ class VivyFinanceMoEDesk:
         candles: list[dict[str, Any]] | None = None,
         balance_usd: float = 20529.51,
         equity_usd: float = 21480.00,
+        macro_news_bias: float | str = 0.22,
     ) -> dict[str, Any]:
         """Runs full Rust `vivy_r_finance_analyze_json` + MoE Expert Subspace modulation (`E0..E4`)."""
         if not candles or len(candles) < 20:
@@ -115,7 +116,7 @@ class VivyFinanceMoEDesk:
             "symbol": symbol.upper(),
             "timeframe": "M15",
             "candles": candles,
-            "macro_news_bias": "NEUTRAL_DATA_DEPENDENT",
+            "macro_news_bias": str(macro_news_bias),
             "previous_plan_succeeded": True,
             "previous_plan_pnl_ratio": 0.025,
             "tick_prices": closes[-32:],

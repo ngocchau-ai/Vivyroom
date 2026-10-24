@@ -491,52 +491,66 @@ class VivyQwenSemanticCompiler:
             else "Anh Vĩ muốn em phân tích hay thực thi tác vụ nào tiếp theo ạ?"
         )
 
-        # Inject specific tool / finance / dream telemetry if a tool was executed
+        # Inject specific tool / finance / dream telemetry if one or more tools were autonomously executed
         tool_clause = ""
         if tool_output:
-            if ast_in.tool_name == "finance_moe_analyze" and "market_regime" in tool_output:
-                tool_clause = (
-                    f" Kết quả định lượng thực tế trên `{tool_output['symbol']}` (giá `{tool_output['last_price']}`): "
-                    f"Cấu trúc `{tool_output['market_regime']}`, hành động AI tự chủ `{tool_output['ai_selected_action']}` "
-                    f"(`{tool_output['execution_stance']}` qua `{tool_output['selected_algo_bot_archetype']}`), "
-                    f"độ tinh khiết phổ lượng tử $\\gamma = {tool_output['svd_purity_gamma']}$, "
-                    f"$z_{{\\text{{OU}}}} = {tool_output['ou_zscore']}$, hệ số lãi kép $\\mathcal{{C}}_{{\\text{{mult}}}} = {tool_output['geometric_compounding_c_mult']}x$ "
-                    f"(bộ lọc cứng = `{tool_output['programmatic_filters_applied']}`)."
-                )
-            elif ast_in.tool_name == "python_ast_math" and "result" in tool_output:
-                tool_clause = f" Kết quả tính toán AST chính xác là `{tool_output['result']}`."
-            elif ast_in.tool_name == "workspace_list_files" and "files" in tool_output:
-                f_preview = ", ".join(tool_output["files"][:8])
-                tool_clause = f" Không gian làm việc hiện có `{tool_output['count']}` mục ({f_preview})."
-            elif ast_in.tool_name == "trigger_lucid_dream" and "dream_status" in tool_output:
-                tool_clause = (
-                    f" Chu kỳ `{tool_output['dream_status']}` đã hoàn tất `{tool_output['rounds_completed']}` vòng, "
-                    f"giải phóng các trang MoE và đưa RAM về `{tool_output['ram_after_mb']} MB`."
-                )
-            elif ast_in.tool_name == "websearch_zero_api" and "results" in tool_output:
-                top_hits = "; ".join(f"[{r['source']}] {r['title']}" for r in tool_output["results"][:3])
-                tool_clause = (
-                    f" Kết quả WebSearch Zero-API (`{tool_output['results_count']}` nguồn, ưu tiên `{', '.join(tool_output['priority_domains'])}`): "
-                    f"{top_hits}."
-                )
-            elif ast_in.tool_name == "github_huggingface_connector" and "repo_id" in tool_output:
-                tool_clause = (
-                    f" Đã truy cập `{tool_output['platform'].upper()}` (`{tool_output['repo_id']}`), ghép nối vào Cautreo Window-4 "
-                    f"và niêm phong bộ chuyển đổi tại `{tool_output['coupled_vcore_path']}` (`{tool_output['coupled_vcore_size_bytes']} B`, "
-                    f"`open_source_weights = {tool_output['open_source_weights']}`)."
-                )
-            elif ast_in.tool_name == "youtube_learning_ingestor" and "distilled_lesson" in tool_output:
-                les = tool_output["distilled_lesson"]
-                tool_clause = (
-                    f" Đã trích xuất bài học định lượng `{les['lesson_id']}` («{les['title']}»): "
-                    f"`{les['mathematical_invariant']}` (chặn sao chép cảm tính = `{les['human_discretionary_style_rejected']}`)."
-                )
-            elif ast_in.tool_name == "market_news_synthesizer" and "events" in tool_output:
-                ev_titles = "; ".join(f"[{e['impact']}] {e['title']}" for e in tool_output["events"][:3])
-                tool_clause = (
-                    f" Tổng hợp tin tức thị trường `{tool_output['symbol']}` (`macro_news_bias = {tool_output['macro_news_bias']:+.2f}`, "
-                    f"`{tool_output['volatility_regime']}`): {ev_titles}."
-                )
+            chain_items = tool_output.get("chained_outputs", [tool_output])
+            clauses: list[str] = []
+            for item in chain_items:
+                if "prompt_sha256" in item:
+                    clauses.append(
+                        f"Đã cập nhật trực tiếp `SYSTEM_PROMPT.md` (`role = {item.get('role')}`, "
+                        f"`sha256 = {item.get('prompt_sha256')}`, `anti_human_bias_shield = {item.get('anti_human_bias_shield')}`)."
+                    )
+                elif "market_regime" in item:
+                    clauses.append(
+                        f"Kết quả định lượng thực tế trên `{item['symbol']}` (giá `{item['last_price']}`): "
+                        f"Cấu trúc `{item['market_regime']}`, hành động AI tự chủ `{item['ai_selected_action']}` "
+                        f"(`{item['execution_stance']}` qua `{item['selected_algo_bot_archetype']}`), "
+                        f"độ tinh khiết phổ lượng tử $\\gamma = {item['svd_purity_gamma']}$, "
+                        f"$z_{{\\text{{OU}}}} = {item['ou_zscore']}$, hệ số lãi kép $\\mathcal{{C}}_{{\\text{{mult}}}} = {item['geometric_compounding_c_mult']}x$ "
+                        f"(bộ lọc cứng = `{item['programmatic_filters_applied']}`)."
+                    )
+                elif "expression" in item and "result" in item:
+                    clauses.append(f"Kết quả tính toán AST chính xác là `{item['result']}`.")
+                elif "files" in item:
+                    f_preview = ", ".join(item["files"][:8])
+                    clauses.append(f"Không gian làm việc hiện có `{item['count']}` mục ({f_preview}).")
+                elif "dream_status" in item:
+                    clauses.append(
+                        f"Chu kỳ `{item['dream_status']}` đã hoàn tất `{item['rounds_completed']}` vòng, "
+                        f"giải phóng các trang MoE và đưa RAM về `{item['ram_after_mb']} MB`."
+                    )
+                elif item.get("skill") == "websearch_zero_api" and "results" in item:
+                    top_hits = "; ".join(f"[{r['source']}] {r['title']}" for r in item["results"][:3])
+                    clauses.append(
+                        f"Kết quả WebSearch Zero-API (`{item['results_count']}` nguồn, ưu tiên `{', '.join(item['priority_domains'])}`): "
+                        f"{top_hits}."
+                    )
+                elif item.get("skill") == "github_huggingface_connector" and "repo_id" in item:
+                    clauses.append(
+                        f"Đã truy cập `{item['platform'].upper()}` (`{item['repo_id']}`), ghép nối vào Cautreo Window-4 "
+                        f"và niêm phong bộ chuyển đổi tại `{item['coupled_vcore_path']}` (`{item['coupled_vcore_size_bytes']} B`, "
+                        f"`open_source_weights = {item['open_source_weights']}`)."
+                    )
+                elif item.get("skill") == "youtube_learning_ingestor" and "distilled_lesson" in item:
+                    les = item["distilled_lesson"]
+                    clauses.append(
+                        f"Đã trích xuất bài học định lượng `{les['lesson_id']}` («{les['title']}»): "
+                        f"`{les['mathematical_invariant']}` (chặn sao chép cảm tính = `{les['human_discretionary_style_rejected']}`)."
+                    )
+                elif item.get("skill") == "market_news_synthesizer" and "events" in item:
+                    ev_titles = "; ".join(f"[{e['impact']}] {e['title']}" for e in item["events"][:3])
+                    clauses.append(
+                        f"Tổng hợp tin tức thị trường `{item['symbol']}` (`macro_news_bias = {item['macro_news_bias']:+.2f}`, "
+                        f"`{item['volatility_regime']}`): {ev_titles}."
+                    )
+            if clauses:
+                if len(chain_items) > 1:
+                    exec_names = " -> ".join(tool_output.get("autonomous_skills_executed", []))
+                    tool_clause = f" [OranPi-PocketFlow Autonomous Chain: {exec_names}] " + " ".join(clauses)
+                else:
+                    tool_clause = " " + " ".join(clauses)
 
         active_exps = ", ".join(moe_report.get("active_expert_codes", []))
         ram_mb = moe_report.get("process_ram_mb", 0.0)

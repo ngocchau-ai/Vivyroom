@@ -108,8 +108,9 @@ Vivyroom/
 
 ---
 
-## 5. Quick Start & Verification
+## 5. 1-Command Git Clone & 1-Time Install (Windows & Linux / OrangePi)
 
+<!-- [ISOLATED / REPLACED — Pre-OranPi Manual Launch Section]
 ### 5.1. Launch Single-Screen Unified Cockpit
 On Windows:
 ```powershell
@@ -120,10 +121,26 @@ Or directly via Python:
 python -m vivyroom.server --host 127.0.0.1 --port 7860
 ```
 Then open **`http://127.0.0.1:7860`** in any browser.
+-->
 
-### 5.2. Run Headless Self-Test & Full Pytest Suite
+### 5.1. 1-Line Clone & 1-Time Install on **Windows** (PowerShell or CMD)
+```powershell
+git clone https://github.com/ngocchau-ai/Vivyroom.git && cd Vivyroom && .\install_and_run.bat
+```
+*(Or in PowerShell: `git clone https://github.com/ngocchau-ai/Vivyroom.git; cd Vivyroom; .\install_and_run.ps1`)*
+
+### 5.2. 1-Line Clone & 1-Time Install on **Linux / OrangePi SBC**
 ```bash
-python -m vivyroom.server --self-test
+git clone https://github.com/ngocchau-ai/Vivyroom.git && cd Vivyroom && bash install_and_run.sh
+```
+- **1-Time Setup Stamp (`.vivyroom_installed`):** On the very first run, `install_and_run` automatically verifies Python and installs `numpy` once (`< 5 seconds`), writes `.vivyroom_installed`, and immediately launches `http://127.0.0.1:7860`. Every subsequent run starts instantaneously (`0` setup overhead).
+- **Zero-Button 100% Autonomous Single-Chat Interface (`OranPi × PocketFlow`):**
+  - The UI contains **`0` manual buttons**. You interact exclusively through **one unified chat box** (press `Enter` to send) or by editing the collapsible `SYSTEM_PROMPT.md` drawer (auto-saves automatically on edit/blur, or via `/prompt <new system prompt>` directly in chat).
+  - Vivy autonomously plans and chains multiple skills in a single turn (`market_news_synthesizer -> websearch_zero_api -> finance_moe_analyze -> youtube_learning_ingestor -> github_huggingface_connector`), renders quantitative SVG charts inline inside the chat stream, and automatically executes `LUCID_STANDBY` RAM Dream compaction when needed.
+
+### 5.3. Run Headless Self-Test & Full Pytest Suite
+```bash
+python -m vivyroom --self-test
 pytest -q
 ```
 
@@ -135,3 +152,4 @@ pytest -q
 |:---|:---|:---|
 | Antigravity IDE | 2026-10-24 11:48 ICT | Initial release of `Vivyroom` v1.0.0: Portable `<2 GB RAM` unified `Vivy + Cautreo` cockpit, proprietary 3-Cores-in-1 `.vcore` encryption, 8-Expert `Vivy-Finance-3B-MoE`, and Qwen-Decomposed Bidirectional Semantic Compiler. |
 | Antigravity IDE | 2026-10-24 12:12 ICT | Added 4 mandatory ultra-lightweight skills (`websearch_zero_api` prioritizing RoboForex & ForexFactory, `github_huggingface_connector`, `youtube_learning_ingestor`, `market_news_synthesizer`) and Zero-Config `SYSTEM_PROMPT.md` with Anti-Human-Bias Shield (`6/6 pytest passed`). |
+| Antigravity IDE | 2026-10-24 13:18 ICT | Upgraded to Button-Free (`0` buttons) 100% Autonomous Single-Chat UI powered by open-source `OranPi × PocketFlow` (`vivyroom/agent/oranpi_pocket_agent.py`), autonomous multi-skill chaining, auto-saving `SYSTEM_PROMPT.md`, and 1-command Git clone & 1-time install scripts (`install_and_run.bat`, `install_and_run.ps1`, `install_and_run.sh`) for Windows and Linux / OrangePi. |

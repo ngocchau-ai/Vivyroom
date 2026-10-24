@@ -31,6 +31,7 @@ from ..moe_engine.moe_upcycler_trainer import (
 )
 from .llm_semantic_compiler import CompiledIntentAST, VivyQwenSemanticCompiler
 from .memory_engine import CautreoMemoryAndVM11Engine
+from .oranpi_pocket_agent import build_autonomous_skill_plan, detect_oranpi_and_host_hardware
 from .pocket_graph import PocketStateContext, ZeroRelayPocketGraph
 from .skills_registry import OfflineSkillsRegistry
 from .trader_system_prompt import TraderSystemPromptManager
@@ -97,28 +98,74 @@ class VivyroomAutonomousController:
                 self._persona_vector_8,
                 max_steps=8,
             )
+            skill_plan = (
+                []
+                if ast_in.contradiction_detected
+                else build_autonomous_skill_plan(
+                    ast_in.normalized_text,
+                    ast_in.tool_name if ast_in.requires_tool else "none",
+                    ast_in.tool_args,
+                )
+            )
             ctx.state["moe_report"] = moe_report
             ctx.state["eq_report"] = eq_report
-            return "ACTUATE_SKILL" if ast_in.requires_tool else "COMPILE_OUTBOUND"
+            ctx.state["skill_plan"] = skill_plan
+            return "ACTUATE_SKILL" if (ast_in.requires_tool or len(skill_plan) > 0) else "COMPILE_OUTBOUND"
 
         def node_actuate_skill(ctx: PocketStateContext) -> str:
             ast_in: CompiledIntentAST = ctx.state["ast_in"]
-            tool_out = self.skills.execute_skill(ast_in.tool_name, ast_in.tool_args)
-            ctx.state["tool_output"] = tool_out
-            if not tool_out.get("executed", False):
-                self.memory.register_falsification(f"skill:{ast_in.tool_name}")
-            elif ast_in.tool_name == "trigger_lucid_dream":
+            skill_plan: list[dict[str, Any]] = ctx.state.get("skill_plan") or [
+                {"tool_name": ast_in.tool_name, "tool_args": ast_in.tool_args}
+            ]
+            chained_outputs: list[dict[str, Any]] = []
+            primary_out: dict[str, Any] = {}
+
+            for step in skill_plan:
+                t_name = step["tool_name"]
+                t_args = step["tool_args"]
+                if t_name == "update_system_prompt_inline":
+                    if t_args.get("reset"):
+                        prof = self.system_prompt_mgr.reset_to_default_trader_prompt()
+                    else:
+                        prof = self.system_prompt_mgr.update_system_prompt(str(t_args.get("prompt_text", "")))
+                    out = {"executed": True, "skill": "update_system_prompt_inline", **prof.to_dict()}
+                else:
+                    out = self.skills.execute_skill(t_name, t_args)
+
+                chained_outputs.append(out)
+                if not primary_out or t_name == ast_in.tool_name:
+                    primary_out = out
+                if not out.get("executed", False):
+                    self.memory.register_falsification(f"skill:{t_name}")
+                elif t_name == "trigger_lucid_dream":
+                    self.memory.dream_cycles_completed += 1
+                elif t_name == "youtube_learning_ingestor" and "distilled_lesson" in out:
+                    self.memory.record_quant_lesson(out["distilled_lesson"])
+                elif t_name == "github_huggingface_connector" and out.get("cautreo_coupled"):
+                    self.memory.record_coupled_model(
+                        {
+                            "platform": out.get("platform"),
+                            "repo_id": out.get("repo_id"),
+                            "coupled_vcore_path": out.get("coupled_vcore_path"),
+                        }
+                    )
+
+            # Autonomous RAM self-maintenance: if turn count is multiple of 20 or RAM > 75% ceiling, auto-dream
+            if self._turn_counter % 20 == 0 or get_process_working_set_mb() >= self.config.device_ram_limit_mb * 0.75:
+                self.moe_pager.purge_all_expert_pages()
                 self.memory.dream_cycles_completed += 1
-            elif ast_in.tool_name == "youtube_learning_ingestor" and "distilled_lesson" in tool_out:
-                self.memory.record_quant_lesson(tool_out["distilled_lesson"])
-            elif ast_in.tool_name == "github_huggingface_connector" and tool_out.get("cautreo_coupled"):
-                self.memory.record_coupled_model(
-                    {
-                        "platform": tool_out.get("platform"),
-                        "repo_id": tool_out.get("repo_id"),
-                        "coupled_vcore_path": tool_out.get("coupled_vcore_path"),
-                    }
-                )
+
+            if len(chained_outputs) > 1:
+                merged = dict(primary_out)
+                merged["chained_outputs"] = chained_outputs
+                merged["autonomous_skills_executed"] = [s["tool_name"] for s in skill_plan]
+                # Preserve svg_chart if any step in the chain generated one
+                for item in chained_outputs:
+                    if "svg_chart" in item:
+                        merged["svg_chart"] = item["svg_chart"]
+                ctx.state["tool_output"] = merged
+            else:
+                ctx.state["tool_output"] = primary_out
             return "COMPILE_OUTBOUND"
 
         def node_compile_outbound(ctx: PocketStateContext) -> str | None:
@@ -226,4 +273,5 @@ class VivyroomAutonomousController:
             "enabled_skills": self.skills.enabled_skills,
             "memory_digest": self.memory.get_digest(),
             "trader_system_prompt": self.system_prompt_mgr.get_active_profile().to_dict(),
+            "oranpi_edge_profile": detect_oranpi_and_host_hardware(),
         }
